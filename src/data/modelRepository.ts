@@ -6,6 +6,7 @@ export interface ModelRepository {
   getAll(): Promise<ModelMetadata[]>;
   getById(id: string): Promise<ModelMetadata | null>;
   filter(filter: ModelFilter): Promise<ModelMetadata[]>;
+  getMine(token: string | null): Promise<ModelMetadata[]>;
 }
 
 class StaticModelRepository implements ModelRepository {
@@ -61,6 +62,10 @@ class StaticModelRepository implements ModelRepository {
     }
 
     return results;
+  }
+
+  async getMine(): Promise<ModelMetadata[]> {
+    return [];
   }
 }
 

@@ -14,7 +14,7 @@ export function LoginPage() {
     e.preventDefault();
     clearError();
     const success = await login(email, password);
-    if (success) navigate('/');
+    if (success) navigate('/dashboard');
   };
 
   return (

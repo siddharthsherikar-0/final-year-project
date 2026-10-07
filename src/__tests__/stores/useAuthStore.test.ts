@@ -73,5 +73,36 @@ describe('useAuthStore', () => {
     expect(useAuthStore.getState().isAuthenticated).toBe(false);
     expect(useAuthStore.getState().user).toBeNull();
     expect(localStorage.getItem('token')).toBeNull();
+    expect(localStorage.getItem('user')).toBeNull();
+  });
+
+  it('restores the user together with the token on a fresh load', async () => {
+    localStorage.setItem('token', 'jwt-token');
+    localStorage.setItem(
+      'user',
+      JSON.stringify({ id: '1', email: 'test@test.com', name: 'Test' }),
+    );
+
+    vi.resetModules();
+    const { useAuthStore: fresh } = await import('@/stores/useAuthStore');
+
+    expect(fresh.getState().isAuthenticated).toBe(true);
+    expect(fresh.getState().token).toBe('jwt-token');
+    expect(fresh.getState().user).toEqual({
+      id: '1',
+      email: 'test@test.com',
+      name: 'Test',
+    });
+  });
+
+  it('ignores a corrupted stored user', async () => {
+    localStorage.setItem('token', 'jwt-token');
+    localStorage.setItem('user', 'not-json');
+
+    vi.resetModules();
+    const { useAuthStore: fresh } = await import('@/stores/useAuthStore');
+
+    expect(fresh.getState().isAuthenticated).toBe(true);
+    expect(fresh.getState().user).toBeNull();
   });
 });

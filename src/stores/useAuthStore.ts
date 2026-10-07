@@ -20,8 +20,17 @@ interface AuthState {
 
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api';
 
+function readStoredUser(): User | null {
+  try {
+    const raw = localStorage.getItem('user');
+    return raw ? (JSON.parse(raw) as User) : null;
+  } catch {
+    return null;
+  }
+}
+
 export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
+  user: readStoredUser(),
   token: localStorage.getItem('token'),
   isAuthenticated: !!localStorage.getItem('token'),
   isLoading: false,
@@ -42,6 +51,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
       const data = await res.json();
       localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
       set({ user: data.user, token: data.token, isAuthenticated: true, isLoading: false });
       return true;
     } catch {
@@ -65,6 +75,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
       const data = await res.json();
       localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
       set({ user: data.user, token: data.token, isAuthenticated: true, isLoading: false });
       return true;
     } catch {
@@ -75,6 +86,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     set({ user: null, token: null, isAuthenticated: false });
   },
 

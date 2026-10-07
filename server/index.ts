@@ -3,7 +3,7 @@ import cors from 'cors';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { prisma } from './prisma';
-import { authRouter } from './auth';
+import { authRouter, authMiddleware, type AuthRequest } from './auth';
 import { uploadRouter } from './upload';
 import { favoriteRouter } from './favorites';
 
@@ -31,6 +31,22 @@ app.get('/api/models', async (_req, res) => {
     res.json(models);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch models' });
+  }
+});
+
+app.get('/api/models/mine', authMiddleware, async (req: AuthRequest, res) => {
+  if (!req.userId) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  try {
+    const models = await prisma.model.findMany({
+      where: { userId: req.userId },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(models);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch your models' });
   }
 });
 

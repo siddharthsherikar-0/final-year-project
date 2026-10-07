@@ -1,8 +1,9 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 function renderHeader() {
   return render(
@@ -48,6 +49,67 @@ describe('Header', () => {
       screen.queryByRole('navigation', { name: 'Mobile navigation' }),
     ).not.toBeInTheDocument();
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  });
+});
+
+describe('Header authenticated navigation', () => {
+  afterEach(() => {
+    useAuthStore.setState({
+      isAuthenticated: false,
+      token: null,
+      user: null,
+      error: null,
+      isLoading: false,
+    });
+  });
+
+  it('offers Dashboard, Upload and Favorites to signed-in users', () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      token: 'test-token',
+      user: { id: 'u1', email: 'ada@studio.dev', name: 'Ada Lovelace' },
+    });
+
+    renderHeader();
+
+    const nav = screen.getByRole('navigation', { name: 'Main navigation' });
+    expect(within(nav).getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
+      'href',
+      '/dashboard',
+    );
+    expect(within(nav).getByRole('link', { name: 'Upload' })).toHaveAttribute(
+      'href',
+      '/upload',
+    );
+    expect(within(nav).getByRole('link', { name: 'Favorites' })).toHaveAttribute(
+      'href',
+      '/favorites',
+    );
+    expect(within(nav).getByText('Ada Lovelace')).toBeInTheDocument();
+  });
+
+  it('includes Dashboard in the mobile menu', () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      token: 'test-token',
+      user: { id: 'u1', email: 'ada@studio.dev', name: 'Ada Lovelace' },
+    });
+
+    renderHeader();
+    fireEvent.click(screen.getByRole('button', { name: /toggle navigation menu/i }));
+
+    const mobile = screen.getByRole('navigation', { name: 'Mobile navigation' });
+    expect(within(mobile).getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
+      'href',
+      '/dashboard',
+    );
+  });
+
+  it('keeps dashboard hidden while signed out', () => {
+    renderHeader();
+
+    const nav = screen.getByRole('navigation', { name: 'Main navigation' });
+    expect(within(nav).queryByRole('link', { name: 'Dashboard' })).toBeNull();
   });
 });
 

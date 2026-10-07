@@ -100,4 +100,15 @@ export class ApiModelRepository {
 
     return results;
   }
+
+  async getMine(token: string | null): Promise<ModelMetadata[]> {
+    if (!token) throw new Error('Not authenticated');
+    const res = await fetch(`${API_BASE}/models/mine`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.status === 401) throw new Error('Session expired. Please log in again.');
+    if (!res.ok) throw new Error('Failed to fetch your models');
+    const records = (await res.json()) as ApiModelRecord[];
+    return records.map(recordToMetadata);
+  }
 }

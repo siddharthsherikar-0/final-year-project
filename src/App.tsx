@@ -7,6 +7,8 @@ import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { UploadPage } from '@/pages/UploadPage';
 import { FavoritesPage } from '@/pages/FavoritesPage';
+import { DashboardPage } from '@/pages/DashboardPage';
+import { MyModelsPage } from '@/pages/MyModelsPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
 export default function App() {
@@ -21,6 +23,8 @@ export default function App() {
           <Route path="register" element={<RegisterPage />} />
           <Route path="upload" element={<UploadPage />} />
           <Route path="favorites" element={<FavoritesPage />} />
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="my-models" element={<MyModelsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

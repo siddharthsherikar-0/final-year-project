@@ -15,7 +15,7 @@ export function RegisterPage() {
     e.preventDefault();
     clearError();
     const success = await register(email, name, password);
-    if (success) navigate('/');
+    if (success) navigate('/dashboard');
   };
 
   return (

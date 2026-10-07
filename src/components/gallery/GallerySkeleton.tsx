@@ -4,7 +4,7 @@ export function GallerySkeleton() {
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
-          className="animate-pulse overflow-hidden rounded-card border border-line bg-surface"
+          className="animate-pulse overflow-hidden rounded-card border border-line bg-surface motion-reduce:animate-none"
         >
           <div className="h-40 w-full bg-elevated" />
           <div className="p-4">

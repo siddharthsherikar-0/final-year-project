@@ -59,6 +59,12 @@ export function Header() {
           {isAuthenticated ? (
             <>
               <Link
+                to="/dashboard"
+                className="rounded-md px-3 py-1.5 text-sm font-medium text-ink-muted transition-colors hover:bg-surface hover:text-ink"
+              >
+                Dashboard
+              </Link>
+              <Link
                 to="/upload"
                 className="rounded-md px-3 py-1.5 text-sm font-medium text-ink-muted transition-colors hover:bg-surface hover:text-ink"
               >
@@ -155,6 +161,13 @@ export function Header() {
         </Link>
         {isAuthenticated ? (
           <>
+            <Link
+              to="/dashboard"
+              onClick={() => setMenuOpen(false)}
+              className="block rounded-md px-3 py-2.5 text-sm font-medium text-ink-muted transition-colors hover:bg-elevated hover:text-ink"
+            >
+              Dashboard
+            </Link>
             <Link
               to="/upload"
               onClick={() => setMenuOpen(false)}

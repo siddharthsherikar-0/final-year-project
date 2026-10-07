@@ -6,7 +6,7 @@ export function Skeleton({ className = '' }: SkeletonProps) {
   return (
     <div
       aria-hidden="true"
-      className={`animate-pulse rounded-md bg-elevated ${className}`}
+      className={`animate-pulse rounded-md bg-elevated motion-reduce:animate-none ${className}`}
     />
   );
 }
