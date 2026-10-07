@@ -5,7 +5,7 @@ import { ModelGallery } from '@/components/gallery/ModelGallery';
 import { SearchBar } from '@/components/search/SearchBar';
 import { FilterPanel } from '@/components/search/FilterPanel';
 import { FilterTag } from '@/components/search/FilterTag';
-import { Spinner } from '@/components/ui/Spinner';
+import { SortControls } from '@/components/search/SortControls';
 import { Hero } from '@/components/landing/Hero';
 import { LatestUploads } from '@/components/landing/LatestUploads';
 
@@ -78,29 +78,26 @@ export function HomePage() {
           </p>
         </div>
 
-        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="w-full lg:max-w-md">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="w-full sm:max-w-md">
             <SearchBar />
           </div>
-          <FilterTag />
+          <div className="flex flex-wrap items-center gap-3">
+            <SortControls />
+            <FilterTag />
+          </div>
         </div>
 
         <div className="mb-6 rounded-panel border border-line bg-surface p-4">
           <FilterPanel />
         </div>
 
-        {isLoading ? (
-          <div className="flex h-64 items-center justify-center">
-            <Spinner size="lg" />
-          </div>
-        ) : (
-          <>
-            <p className="mb-4 text-sm text-ink-muted">
-              Showing {filteredModels.length} of {models.length} models
-            </p>
-            <ModelGallery models={filteredModels} isLoading={false} />
-          </>
+        {!isLoading && (
+          <p className="mb-4 text-sm text-ink-muted">
+            Showing {filteredModels.length} of {models.length} models
+          </p>
         )}
+        <ModelGallery models={filteredModels} isLoading={isLoading} />
       </div>
     </div>
   );

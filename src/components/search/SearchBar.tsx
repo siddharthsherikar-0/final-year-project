@@ -15,10 +15,11 @@ export function SearchBar() {
   return (
     <div className="relative">
       <svg
-        className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+        className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
+        aria-hidden="true"
       >
         <path
           strokeLinecap="round"
@@ -29,10 +30,11 @@ export function SearchBar() {
       </svg>
       <input
         type="text"
+        aria-label="Search models"
         placeholder="Search models..."
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
-        className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="w-full rounded-md border border-line bg-surface py-2 pl-10 pr-4 text-sm text-ink placeholder-ink-faint transition-colors duration-fast focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
       />
     </div>
   );

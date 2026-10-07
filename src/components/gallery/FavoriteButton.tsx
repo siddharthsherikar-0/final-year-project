@@ -20,10 +20,10 @@ export function FavoriteButton({ modelId, className = '' }: FavoriteButtonProps)
         e.stopPropagation();
         void toggleFavorite(modelId);
       }}
-      className={`inline-flex items-center justify-center rounded-full p-1.5 transition-colors ${
+      className={`inline-flex items-center justify-center rounded-full bg-bg/70 p-1.5 backdrop-blur transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
         isFavorited
-          ? 'text-red-500 hover:text-red-600'
-          : 'text-gray-400 hover:text-red-400'
+          ? 'text-danger hover:text-danger'
+          : 'text-ink-muted hover:text-danger'
       } ${className}`}
       aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
     >
