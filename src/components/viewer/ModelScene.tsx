@@ -1,9 +1,45 @@
-import { Environment, Grid, OrbitControls } from '@react-three/drei';
-import { useRef, useEffect } from 'react';
-import { useThree } from '@react-three/fiber';
+import { Environment, Grid, Lightformer, OrbitControls, PerformanceMonitor } from '@react-three/drei';
+import { Suspense, useCallback, useEffect, useRef } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
+import type { PerspectiveCamera } from 'three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { ModelMesh } from './ModelMesh';
 import { useViewerStore } from '@/stores/useViewerStore';
+import { ENVIRONMENT_PRESETS } from './viewerUtils';
+import { viewerRuntime, resetViewerRuntime } from './viewerRuntime';
+
+function RuntimeBridge() {
+  const gl = useThree((s) => s.gl);
+  const scene = useThree((s) => s.scene);
+  const camera = useThree((s) => s.camera);
+
+  useEffect(() => {
+    viewerRuntime.gl = gl;
+    viewerRuntime.scene = scene;
+    viewerRuntime.camera = camera as PerspectiveCamera;
+    return () => resetViewerRuntime();
+  }, [gl, scene, camera]);
+
+  return null;
+}
+
+function SceneStatsReporter() {
+  const gl = useThree((s) => s.gl);
+  const lastReport = useRef(0);
+
+  useFrame(({ clock }) => {
+    const now = clock.elapsedTime;
+    if (now - lastReport.current < 0.5) return;
+    lastReport.current = now;
+    const { calls, triangles } = gl.info.render;
+    const previous = useViewerStore.getState().viewStats;
+    if (!previous || previous.calls !== calls || previous.triangles !== triangles) {
+      useViewerStore.getState().setViewStats({ triangles, calls });
+    }
+  });
+
+  return null;
+}
 
 function CameraController({
   controlsRef,
@@ -12,36 +48,77 @@ function CameraController({
 }) {
   const camera = useThree((s) => s.camera);
   const cameraPosition = useViewerStore((s) => s.cameraPosition);
+  const controlsTarget = useViewerStore((s) => s.controlsTarget);
 
   useEffect(() => {
-    camera.position.set(...cameraPosition);
+    camera.position.set(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
     if (controlsRef.current) {
-      controlsRef.current.target.set(0, 0, 0);
+      controlsRef.current.target.set(
+        controlsTarget[0],
+        controlsTarget[1],
+        controlsTarget[2],
+      );
       controlsRef.current.update();
     }
-  }, [camera, cameraPosition, controlsRef]);
+  }, [camera, cameraPosition, controlsTarget, controlsRef]);
 
   return null;
 }
 
 interface ModelSceneProps {
   modelUrl: string;
+  onReady?: () => void;
+  onPerfDecline?: () => void;
+  onPerfIncline?: () => void;
 }
 
-export function ModelScene({ modelUrl }: ModelSceneProps) {
+export function ModelScene({
+  modelUrl,
+  onReady,
+  onPerfDecline,
+  onPerfIncline,
+}: ModelSceneProps) {
   const showGrid = useViewerStore((s) => s.showGrid);
+  const showAxes = useViewerStore((s) => s.showAxes);
   const autoRotate = useViewerStore((s) => s.autoRotate);
-  const controlsRef = useRef<OrbitControlsImpl>(null);
+  const orbitEnabled = useViewerStore((s) => s.orbitEnabled);
+  const environment = useViewerStore((s) => s.environment);
+  const controlsRef = useRef<OrbitControlsImpl | null>(null);
+  const envConfig = ENVIRONMENT_PRESETS[environment];
+
+  const setControls = useCallback((controls: OrbitControlsImpl | null) => {
+    controlsRef.current = controls;
+    viewerRuntime.controls = controls;
+  }, []);
 
   return (
     <>
-      <ambientLight intensity={0.5} />
+      <RuntimeBridge />
+      <SceneStatsReporter />
+
+      <color attach="background" args={[envConfig.background]} />
+
+      <ambientLight intensity={0.35} />
       <directionalLight position={[10, 10, 5]} intensity={1} />
       <directionalLight position={[-10, -10, -5]} intensity={0.3} />
 
-      <Environment preset="city" />
+      <Environment key={environment} resolution={64} frames={1}>
+        {envConfig.lightformers.map((spec, index) => (
+          <Lightformer
+            key={`${environment}-${index}`}
+            form={spec.form}
+            position={spec.position}
+            scale={spec.scale}
+            rotation={spec.rotation ?? [0, 0, 0]}
+            color={spec.color}
+            intensity={spec.intensity}
+          />
+        ))}
+      </Environment>
 
-      <ModelMesh modelUrl={modelUrl} />
+      <Suspense fallback={null}>
+        <ModelMesh modelUrl={modelUrl} onReady={onReady} />
+      </Suspense>
 
       {showGrid && (
         <Grid
@@ -59,17 +136,27 @@ export function ModelScene({ modelUrl }: ModelSceneProps) {
         />
       )}
 
+      {showAxes && <axesHelper args={[1.5]} position={[0, 0.002, 0]} />}
+
       <OrbitControls
-        ref={controlsRef}
+        ref={setControls}
+        enabled={orbitEnabled}
         autoRotate={autoRotate}
         autoRotateSpeed={2}
         enableDamping
         dampingFactor={0.05}
-        minDistance={1}
-        maxDistance={20}
+        makeDefault
+        minDistance={0.05}
+        maxDistance={1000}
       />
 
       <CameraController controlsRef={controlsRef} />
+
+      <PerformanceMonitor
+        flipflops={2}
+        onDecline={onPerfDecline}
+        onIncline={onPerfIncline}
+      />
     </>
   );
 }

@@ -309,7 +309,7 @@ export function ModelDetailPage() {
               <div className="pointer-events-none absolute left-4 top-4 z-10 rounded-full border border-line bg-bg/70 px-3 py-1 text-xs font-medium uppercase tracking-wider text-ink-muted backdrop-blur">
                 Interactive preview
               </div>
-              <p className="pointer-events-none absolute bottom-4 right-4 z-10 hidden rounded-full border border-line bg-bg/70 px-3 py-1 text-xs text-ink-muted backdrop-blur sm:block">
+              <p className="pointer-events-none absolute right-4 top-4 z-10 hidden rounded-full border border-line bg-bg/70 px-3 py-1 text-xs text-ink-muted backdrop-blur sm:block">
                 Drag to orbit &middot; Scroll to zoom
               </p>
             </div>

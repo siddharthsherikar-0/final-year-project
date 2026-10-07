@@ -1,33 +1,91 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useModelStore } from '@/stores/useModelStore';
 import { ModelViewer } from '@/components/viewer/ModelViewer';
 import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
 
+type Phase = 'loading' | 'ready' | 'error' | 'not-found';
+
+function phaseFor(id: string | undefined): Phase {
+  const { models, error } = useModelStore.getState();
+  if (models.length === 0 && error) return 'error';
+  if (!models.some((model) => model.id === id)) {
+    return models.length === 0 ? 'loading' : 'not-found';
+  }
+  return 'ready';
+}
+
 export function ViewerPage() {
   const { id } = useParams<{ id: string }>();
   const { models, fetchModels, selectModel } = useModelStore();
+  const [phase, setPhase] = useState<Phase>(() => phaseFor(id));
 
   useEffect(() => {
-    if (models.length === 0) {
-      void fetchModels();
+    if (useModelStore.getState().models.length > 0) {
+      setPhase(phaseFor(id));
+      return;
     }
-  }, [models.length, fetchModels]);
+    let active = true;
+    void fetchModels().then(() => {
+      if (active) setPhase(phaseFor(id));
+    });
+    return () => {
+      active = false;
+    };
+  }, [id, fetchModels]);
 
-  const model = models.find((m) => m.id === id);
+  const model = phase === 'ready' ? models.find((m) => m.id === id) : undefined;
 
   useEffect(() => {
-    if (model) {
-      selectModel(model);
-    }
+    if (model) selectModel(model);
   }, [model, selectModel]);
 
-  if (!model) {
+  if (phase === 'loading' || phase === 'error') {
     return (
-      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
-        <Spinner size="lg" />
-        <p className="text-ink-muted">Loading model...</p>
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
+        {phase === 'loading' ? (
+          <>
+            <Spinner size="lg" />
+            <p aria-live="polite" data-testid="viewer-page-message">
+              <span className="text-ink-muted">Loading model...</span>
+            </p>
+            <Link to="/">
+              <Button variant="secondary">Back to Gallery</Button>
+            </Link>
+          </>
+        ) : (
+          <>
+            <p role="alert" className="text-sm font-medium text-danger">
+              Couldn&apos;t load this model
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setPhase('loading');
+                  void fetchModels().then(() => setPhase(phaseFor(id)));
+                }}
+              >
+                Try again
+              </Button>
+              <Link to="/">
+                <Button variant="secondary">Back to Gallery</Button>
+              </Link>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  if (phase === 'not-found' || !model) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
+        <p className="text-sm font-medium text-ink">Model not found</p>
+        <p className="text-xs text-ink-muted">
+          It may have been removed, or the link is out of date.
+        </p>
         <Link to="/">
           <Button variant="secondary">Back to Gallery</Button>
         </Link>
@@ -36,21 +94,21 @@ export function ViewerPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] flex-col">
+    <div className="flex h-[calc(100dvh-3.5rem)] flex-col">
       <div className="flex items-center justify-between border-b border-line bg-surface px-4 py-2">
         <Link
           to={`/model/${id}`}
-          className="inline-flex items-center gap-1 rounded-md bg-elevated px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-line"
+          className="inline-flex items-center gap-1 rounded-md bg-elevated px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-line focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:ring-offset-bg"
         >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           Back to Model
         </Link>
-        <h1 className="text-sm font-semibold text-ink">{model.name}</h1>
-        <span className="w-20" />
+        <h1 className="truncate px-3 text-sm font-semibold text-ink">{model.name}</h1>
+        <span className="w-28 shrink-0" aria-hidden="true" />
       </div>
-      <div className="flex-1">
+      <div className="min-h-0 flex-1">
         <ModelViewer modelUrl={model.fileUrl} modelName={model.name} />
       </div>
     </div>
