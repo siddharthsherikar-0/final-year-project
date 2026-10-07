@@ -46,7 +46,7 @@ export function HomePage() {
   if (error) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
-        <p className="text-red-600">{error}</p>
+        <p className="text-danger">{error}</p>
       </div>
     );
   }
@@ -54,8 +54,8 @@ export function HomePage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Model Gallery</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="font-display text-2xl font-bold text-ink">Model Gallery</h1>
+        <p className="mt-1 text-sm text-ink-muted">
           Browse and view 3D models in your browser
         </p>
       </div>
@@ -77,7 +77,7 @@ export function HomePage() {
         </div>
       ) : (
         <>
-          <p className="mb-4 text-sm text-gray-500">
+          <p className="mb-4 text-sm text-ink-muted">
             Showing {filteredModels.length} of {models.length} models
           </p>
           <ModelGallery models={filteredModels} isLoading={false} />

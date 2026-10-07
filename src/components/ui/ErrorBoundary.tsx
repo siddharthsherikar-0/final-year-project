@@ -24,12 +24,12 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         this.props.fallback ?? (
-          <div className="flex h-full min-h-[200px] items-center justify-center rounded-lg border border-red-200 bg-red-50 p-4">
+          <div className="flex h-full min-h-[200px] items-center justify-center rounded-card border border-danger/30 bg-danger/10 p-4">
             <div className="text-center">
-              <p className="text-sm font-medium text-red-800">
+              <p className="text-sm font-medium text-danger">
                 Something went wrong
               </p>
-              <p className="mt-1 text-xs text-red-600">
+              <p className="mt-1 text-xs text-ink-muted">
                 {this.state.error?.message ?? 'Unknown error'}
               </p>
             </div>

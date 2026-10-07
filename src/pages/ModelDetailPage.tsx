@@ -20,7 +20,7 @@ export function ModelDetailPage() {
   if (!model) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
-        <p className="text-gray-500">Model not found</p>
+        <p className="text-ink-muted">Model not found</p>
         <Link to="/" className="mt-4 inline-block">
           <Button variant="secondary">Back to Gallery</Button>
         </Link>
@@ -31,29 +31,29 @@ export function ModelDetailPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-4 flex items-center gap-4">
-        <Link to="/" className="text-sm text-blue-600 hover:underline">
+        <Link to="/" className="text-sm text-accent-soft hover:underline">
           &larr; Back to Gallery
         </Link>
-        <span className="text-sm text-gray-400">|</span>
+        <span className="text-sm text-ink-faint">|</span>
         <Link
           to={`/viewer/${model.id}`}
-          className="text-sm text-blue-600 hover:underline"
+          className="text-sm text-accent-soft hover:underline"
         >
           Open Full Viewer
         </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <div className="h-[400px] overflow-hidden rounded-lg border border-gray-200 bg-gray-50 lg:h-[500px]">
+        <div className="h-[400px] overflow-hidden rounded-card border border-line bg-surface lg:h-[500px]">
           <ModelViewer modelUrl={model.fileUrl} modelName={model.name} />
         </div>
 
         <div>
           <div className="flex items-start gap-2">
-          <h1 className="text-2xl font-bold text-gray-900">{model.name}</h1>
+          <h1 className="text-2xl font-bold text-ink">{model.name}</h1>
           <FavoriteButton modelId={model.id} className="mt-1" />
         </div>
-          <p className="mt-2 text-gray-600">{model.description}</p>
+          <p className="mt-2 text-ink-muted">{model.description}</p>
 
           <div className="mt-4 flex flex-wrap gap-2">
             <Badge>{model.format.toUpperCase()}</Badge>
@@ -66,43 +66,43 @@ export function ModelDetailPage() {
           </div>
 
           <dl className="mt-6 space-y-3">
-            <div className="flex justify-between border-b border-gray-100 pb-2">
-              <dt className="text-sm text-gray-500">File Size</dt>
-              <dd className="text-sm font-medium text-gray-900">
+            <div className="flex justify-between border-b border-line pb-2">
+              <dt className="text-sm text-ink-muted">File Size</dt>
+              <dd className="text-sm font-medium text-ink">
                 {formatFileSize(model.fileSize)}
               </dd>
             </div>
             {model.vertexCount && (
-              <div className="flex justify-between border-b border-gray-100 pb-2">
-                <dt className="text-sm text-gray-500">Vertices</dt>
-                <dd className="text-sm font-medium text-gray-900">
+              <div className="flex justify-between border-b border-line pb-2">
+                <dt className="text-sm text-ink-muted">Vertices</dt>
+                <dd className="text-sm font-medium text-ink">
                   {model.vertexCount.toLocaleString()}
                 </dd>
               </div>
             )}
             {model.triangleCount && (
-              <div className="flex justify-between border-b border-gray-100 pb-2">
-                <dt className="text-sm text-gray-500">Triangles</dt>
-                <dd className="text-sm font-medium text-gray-900">
+              <div className="flex justify-between border-b border-line pb-2">
+                <dt className="text-sm text-ink-muted">Triangles</dt>
+                <dd className="text-sm font-medium text-ink">
                   {model.triangleCount.toLocaleString()}
                 </dd>
               </div>
             )}
-            <div className="flex justify-between border-b border-gray-100 pb-2">
-              <dt className="text-sm text-gray-500">Author</dt>
-              <dd className="text-sm font-medium text-gray-900">
+            <div className="flex justify-between border-b border-line pb-2">
+              <dt className="text-sm text-ink-muted">Author</dt>
+              <dd className="text-sm font-medium text-ink">
                 {model.author ?? 'Unknown'}
               </dd>
             </div>
-            <div className="flex justify-between border-b border-gray-100 pb-2">
-              <dt className="text-sm text-gray-500">License</dt>
-              <dd className="text-sm font-medium text-gray-900">
+            <div className="flex justify-between border-b border-line pb-2">
+              <dt className="text-sm text-ink-muted">License</dt>
+              <dd className="text-sm font-medium text-ink">
                 {model.license ?? 'Unknown'}
               </dd>
             </div>
-            <div className="flex justify-between border-b border-gray-100 pb-2">
-              <dt className="text-sm text-gray-500">Added</dt>
-              <dd className="text-sm font-medium text-gray-900">
+            <div className="flex justify-between border-b border-line pb-2">
+              <dt className="text-sm text-ink-muted">Added</dt>
+              <dd className="text-sm font-medium text-ink">
                 {formatDate(model.createdAt)}
               </dd>
             </div>

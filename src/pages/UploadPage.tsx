@@ -86,10 +86,10 @@ export function UploadPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">Upload Model</h1>
+      <h1 className="mb-6 font-display text-2xl font-bold text-ink">Upload Model</h1>
 
       {success && (
-        <div className="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-600">
+        <div className="mb-4 rounded-md bg-success/10 p-3 text-sm text-success">
           Model uploaded successfully!{' '}
           <button onClick={() => navigate('/')} className="underline">
             View in gallery
@@ -98,49 +98,49 @@ export function UploadPage() {
       )}
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>
+        <div className="mb-4 rounded-md bg-danger/10 p-3 text-sm text-danger">{error}</div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Model File (GLB/GLTF)</label>
+          <label className="mb-1 block text-sm font-medium text-ink-muted">Model File (GLB/GLTF)</label>
           <input
             ref={fileInputRef}
             type="file"
             accept=".glb,.gltf"
             onChange={handleFileChange}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm file:mr-4 file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-sm file:font-medium"
+            className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm file:mr-4 file:border-0 file:bg-elevated file:px-4 file:py-2 file:text-sm file:font-medium file:text-ink"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Name</label>
+          <label className="mb-1 block text-sm font-medium text-ink-muted">Name</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Description</label>
+          <label className="mb-1 block text-sm font-medium text-ink-muted">Description</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
             rows={3}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Category</label>
+          <label className="mb-1 block text-sm font-medium text-ink-muted">Category</label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           >
             <option value="architecture">Architecture</option>
             <option value="characters">Characters</option>
@@ -153,13 +153,13 @@ export function UploadPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Tags (comma-separated)</label>
+          <label className="mb-1 block text-sm font-medium text-ink-muted">Tags (comma-separated)</label>
           <input
             type="text"
             value={tags}
             onChange={(e) => setTags(e.target.value)}
             placeholder="e.g. character, animated, game-ready"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </div>
 

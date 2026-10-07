@@ -4,10 +4,48 @@
 
 @layer base {
   html {
-    @apply antialiased;
+    @apply antialiased scroll-smooth;
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.line') theme('colors.bg');
   }
 
   body {
-    @apply bg-white text-gray-900;
+    @apply bg-bg font-sans text-ink;
+  }
+
+  ::selection {
+    @apply bg-accent/30 text-ink;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: theme('colors.bg');
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-line;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-ink-faint;
+  }
+
+  select option {
+    @apply bg-surface text-ink;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

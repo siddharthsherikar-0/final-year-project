@@ -25,7 +25,7 @@ export function FavoritesPage() {
   if (!isAuthenticated) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
-        <p className="text-gray-500">Please log in to view your favorites.</p>
+        <p className="text-ink-muted">Please log in to view your favorites.</p>
         <Link to="/login" className="mt-4 inline-block">
           <Button variant="primary">Login</Button>
         </Link>
@@ -37,7 +37,7 @@ export function FavoritesPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">My Favorites</h1>
+      <h1 className="mb-6 font-display text-2xl font-bold text-ink">My Favorites</h1>
 
       {isLoading || favLoading ? (
         <div className="flex h-64 items-center justify-center">
@@ -45,7 +45,7 @@ export function FavoritesPage() {
         </div>
       ) : favoriteModels.length === 0 ? (
         <div className="py-16 text-center">
-          <p className="text-gray-500">You haven't favorited any models yet.</p>
+          <p className="text-ink-muted">You haven't favorited any models yet.</p>
           <Link to="/" className="mt-4 inline-block">
             <Button variant="secondary">Browse Gallery</Button>
           </Link>
