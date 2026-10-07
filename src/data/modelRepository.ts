@@ -1,5 +1,6 @@
 import type { ModelMetadata, ModelFilter } from '@/types';
 import { modelRegistry } from './modelRegistry';
+import { ApiModelRepository } from './apiModelRepository';
 
 export interface ModelRepository {
   getAll(): Promise<ModelMetadata[]>;
@@ -63,4 +64,9 @@ class StaticModelRepository implements ModelRepository {
   }
 }
 
-export const modelRepository: ModelRepository = new StaticModelRepository();
+export function createModelRepository(): ModelRepository {
+  const useApi = import.meta.env.VITE_USE_API === 'true';
+  return useApi ? new ApiModelRepository() : new StaticModelRepository();
+}
+
+export const modelRepository: ModelRepository = createModelRepository();

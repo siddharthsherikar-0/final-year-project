@@ -19,9 +19,10 @@ export function ModelViewer({ modelUrl, modelName, className = '' }: ModelViewer
     <ErrorBoundary>
       <div className={`relative h-full w-full ${className}`}>
         <Canvas
+          key={modelUrl}
           camera={{ position: [0, 1, 5], fov: 45 }}
           dpr={[1, 2]}
-          gl={{ antialias: true, alpha: true }}
+          gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
           onCreated={() => setIsLoading(false)}
           onError={(err) => {
             setError(err instanceof Error ? err.message : 'Failed to initialize renderer');

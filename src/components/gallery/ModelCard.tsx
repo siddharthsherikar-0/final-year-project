@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import type { ModelMetadata } from '@/types';
 import { Badge } from '@/components/ui/Badge';
 import { formatFileSize } from '@/utils/format';
+import { FavoriteButton } from './FavoriteButton';
 
 interface ModelCardProps {
   model: ModelMetadata;
@@ -11,8 +12,11 @@ export function ModelCard({ model }: ModelCardProps) {
   return (
     <Link
       to={`/model/${model.id}`}
-      className="group block rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-blue-300 hover:shadow-md"
+      className="group relative block rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-blue-300 hover:shadow-md"
     >
+      <div className="absolute right-2 top-2 z-10">
+        <FavoriteButton modelId={model.id} />
+      </div>
       <div className="mb-3 flex h-40 items-center justify-center rounded bg-gradient-to-br from-gray-50 to-gray-100">
         <span className="text-4xl">🦆</span>
       </div>

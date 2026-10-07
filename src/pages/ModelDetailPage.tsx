@@ -3,6 +3,7 @@ import { useModelStore } from '@/stores/useModelStore';
 import { ModelViewer } from '@/components/viewer/ModelViewer';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { FavoriteButton } from '@/components/gallery/FavoriteButton';
 import { formatFileSize, formatDate } from '@/utils/format';
 
 export function ModelDetailPage() {
@@ -48,7 +49,10 @@ export function ModelDetailPage() {
         </div>
 
         <div>
+          <div className="flex items-start gap-2">
           <h1 className="text-2xl font-bold text-gray-900">{model.name}</h1>
+          <FavoriteButton modelId={model.id} className="mt-1" />
+        </div>
           <p className="mt-2 text-gray-600">{model.description}</p>
 
           <div className="mt-4 flex flex-wrap gap-2">

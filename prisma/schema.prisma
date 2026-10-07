@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  models    Model[]
+  favorites Favorite[]
+}
+
+model Model {
+  id            String   @id @default(uuid())
+  name          String
+  description   String
+  category      String
+  format        String
+  fileUrl       String
+  thumbnailUrl  String
+  fileSize      Int
+  vertexCount   Int?
+  triangleCount Int?
+  hasTextures   Boolean  @default(false)
+  hasAnimations Boolean  @default(false)
+  tags          String   @default("[]")
+  author        String?
+  license       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  userId String?
+  user   User?  @relation(fields: [userId], references: [id])
+
+  favorites Favorite[]
+}
+
+model Favorite {
+  id       String @id @default(uuid())
+  userId   String
+  modelId  String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  model Model @relation(fields: [modelId], references: [id])
+
+  @@unique([userId, modelId])
+}
