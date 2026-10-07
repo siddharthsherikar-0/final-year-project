@@ -29,9 +29,18 @@ export function ModelDetailPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <Link to="/" className="mb-4 inline-block text-sm text-blue-600 hover:underline">
-        ← Back to Gallery
-      </Link>
+      <div className="mb-4 flex items-center gap-4">
+        <Link to="/" className="text-sm text-blue-600 hover:underline">
+          &larr; Back to Gallery
+        </Link>
+        <span className="text-sm text-gray-400">|</span>
+        <Link
+          to={`/viewer/${model.id}`}
+          className="text-sm text-blue-600 hover:underline"
+        >
+          Open Full Viewer
+        </Link>
+      </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <div className="h-[400px] overflow-hidden rounded-lg border border-gray-200 bg-gray-50 lg:h-[500px]">

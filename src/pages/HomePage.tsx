@@ -1,24 +1,47 @@
-import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useMemo } from 'react';
 import { useModelStore } from '@/stores/useModelStore';
+import { useFilterStore } from '@/stores/useFilterStore';
+import { ModelGallery } from '@/components/gallery/ModelGallery';
+import { SearchBar } from '@/components/search/SearchBar';
+import { FilterPanel } from '@/components/search/FilterPanel';
+import { FilterTag } from '@/components/search/FilterTag';
 import { Spinner } from '@/components/ui/Spinner';
-import { Badge } from '@/components/ui/Badge';
-import { formatFileSize } from '@/utils/format';
 
 export function HomePage() {
   const { models, isLoading, error, fetchModels } = useModelStore();
+  const filterStore = useFilterStore();
 
   useEffect(() => {
     void fetchModels();
   }, [fetchModels]);
 
-  if (isLoading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
+  const filteredModels = useMemo(() => {
+    let result = [...models];
+
+    if (filterStore.searchQuery) {
+      const query = filterStore.searchQuery.toLowerCase();
+      result = result.filter(
+        (m) =>
+          m.name.toLowerCase().includes(query) ||
+          m.description.toLowerCase().includes(query) ||
+          m.tags.some((t) => t.toLowerCase().includes(query)),
+      );
+    }
+
+    if (filterStore.selectedCategories.length > 0) {
+      result = result.filter((m) =>
+        filterStore.selectedCategories.includes(m.category),
+      );
+    }
+
+    if (filterStore.selectedFormats.length > 0) {
+      result = result.filter((m) =>
+        filterStore.selectedFormats.includes(m.format),
+      );
+    }
+
+    return result;
+  }, [models, filterStore.searchQuery, filterStore.selectedCategories, filterStore.selectedFormats]);
 
   if (error) {
     return (
@@ -30,32 +53,36 @@ export function HomePage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">Model Gallery</h1>
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {models.map((model) => (
-          <Link
-            key={model.id}
-            to={`/viewer/${model.id}`}
-            className="group rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
-          >
-            <div className="mb-3 flex h-40 items-center justify-center rounded bg-gray-100">
-              <span className="text-4xl">🦆</span>
-            </div>
-            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600">
-              {model.name}
-            </h3>
-            <p className="mt-1 line-clamp-2 text-xs text-gray-500">
-              {model.description}
-            </p>
-            <div className="mt-3 flex items-center gap-2">
-              <Badge>{model.format.toUpperCase()}</Badge>
-              <span className="text-xs text-gray-400">
-                {formatFileSize(model.fileSize)}
-              </span>
-            </div>
-          </Link>
-        ))}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Model Gallery</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Browse and view 3D models in your browser
+        </p>
       </div>
+
+      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="w-full lg:max-w-md">
+          <SearchBar />
+        </div>
+        <FilterTag />
+      </div>
+
+      <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+        <FilterPanel />
+      </div>
+
+      {isLoading ? (
+        <div className="flex h-64 items-center justify-center">
+          <Spinner size="lg" />
+        </div>
+      ) : (
+        <>
+          <p className="mb-4 text-sm text-gray-500">
+            Showing {filteredModels.length} of {models.length} models
+          </p>
+          <ModelGallery models={filteredModels} isLoading={false} />
+        </>
+      )}
     </div>
   );
 }
