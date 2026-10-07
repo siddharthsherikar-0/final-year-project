@@ -49,3 +49,22 @@
     }
   }
 }
+
+@layer components {
+  .studio-grid {
+    background-image:
+      linear-gradient(to right, theme('colors.line') 1px, transparent 1px),
+      linear-gradient(to bottom, theme('colors.line') 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(
+      ellipse 70% 60% at 50% 0%,
+      #000 20%,
+      transparent 75%
+    );
+    mask-image: radial-gradient(
+      ellipse 70% 60% at 50% 0%,
+      #000 20%,
+      transparent 75%
+    );
+  }
+}
