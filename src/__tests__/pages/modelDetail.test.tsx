@@ -209,14 +209,38 @@ describe('ModelDetailPage states', () => {
     expect(modelRepository.getAll).toHaveBeenCalledTimes(1);
   });
 
-  it('shows a deterministic not-found state for unknown ids', () => {
+  it('shows a deterministic not-found state for unknown ids', async () => {
     useModelStore.setState({ models: [makeModel('other')] });
+    (modelRepository.getAll as ReturnType<typeof vi.fn>).mockResolvedValue([
+      makeModel('other'),
+    ]);
 
     renderDetail('missing-id');
 
-    expect(screen.getByRole('heading', { name: /model not found/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: /model not found/i }),
+    ).toBeInTheDocument();
+    expect(modelRepository.getAll).toHaveBeenCalledTimes(1);
     const back = screen.getByRole('link', { name: /back to gallery/i });
     expect(back).toHaveAttribute('href', '/');
+  });
+
+  it('refetches a stale store and renders a model uploaded after the last fetch', async () => {
+    useModelStore.setState({ models: [makeModel('old1', { name: 'Before Upload' })] });
+    (modelRepository.getAll as ReturnType<typeof vi.fn>).mockResolvedValue([
+      makeModel('old1', { name: 'Before Upload' }),
+      makeModel('new-upload', { name: 'Fresh Upload' }),
+    ]);
+
+    renderDetail('new-upload');
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Fresh Upload' }),
+    ).toBeInTheDocument();
+    expect(modelRepository.getAll).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByRole('heading', { name: /model not found/i }),
+    ).toBeNull();
   });
 
   it('shows an error state and recovers via retry', async () => {

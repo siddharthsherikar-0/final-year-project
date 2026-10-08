@@ -15,9 +15,10 @@ import { primaryCtaClass, secondaryCtaClass } from '@/components/landing/Hero';
 
 type Phase = 'loading' | 'ready' | 'error';
 
-function phaseFromStore(): Phase {
-  const state = useModelStore.getState();
-  return state.error && state.models.length === 0 ? 'error' : 'ready';
+function phaseAfterFetch(id: string | undefined): Phase {
+  const { models, error } = useModelStore.getState();
+  if (models.some((model) => model.id === id)) return 'ready';
+  return error ? 'error' : 'ready';
 }
 
 function SpecRow({ label, children }: { label: string; children: ReactNode }) {
@@ -65,18 +66,22 @@ export function ModelDetailPage() {
   const shareTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (useModelStore.getState().models.length > 0) {
+    const hasRequestedModel = () =>
+      useModelStore.getState().models.some((m) => m.id === id);
+
+    if (hasRequestedModel()) {
       setPhase('ready');
       return;
     }
     let active = true;
+    setPhase('loading');
     void fetchModels().then(() => {
-      if (active) setPhase(phaseFromStore());
+      if (active) setPhase(phaseAfterFetch(id));
     });
     return () => {
       active = false;
     };
-  }, [fetchModels]);
+  }, [fetchModels, id]);
 
   useEffect(
     () => () => {
@@ -87,7 +92,7 @@ export function ModelDetailPage() {
 
   const handleRetry = () => {
     setPhase('loading');
-    void fetchModels().then(() => setPhase(phaseFromStore()));
+    void fetchModels().then(() => setPhase(phaseAfterFetch(id)));
   };
 
   const model = phase === 'ready' ? models.find((m) => m.id === id) : undefined;

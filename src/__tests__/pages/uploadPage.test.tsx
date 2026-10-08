@@ -6,7 +6,7 @@ import {
   waitFor,
   act,
 } from '@testing-library/react';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { MemoryRouter, Routes, Route, useParams } from 'react-router-dom';
 import { UploadPage } from '@/pages/UploadPage';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { makeGlbFile, FIXTURE_STATS } from '../helpers/gltfFixture';
@@ -67,12 +67,17 @@ class FakeXHR {
   }
 }
 
+function ModelRouteProbe() {
+  const { id } = useParams();
+  return <div data-testid="model-route" data-id={id} />;
+}
+
 function renderUpload() {
   return render(
     <MemoryRouter initialEntries={['/upload']}>
       <Routes>
         <Route path="/upload" element={<UploadPage />} />
-        <Route path="/model/:id" element={<div data-testid="model-route" />} />
+        <Route path="/model/:id" element={<ModelRouteProbe />} />
         <Route path="/login" element={<div data-testid="login-route" />} />
       </Routes>
     </MemoryRouter>,
@@ -339,6 +344,7 @@ describe('UploadPage', () => {
 
     fireEvent.click(screen.getByTestId('upload-view-model'));
     expect(screen.getByTestId('model-route')).toBeInTheDocument();
+    expect(screen.getByTestId('model-route')).toHaveAttribute('data-id', 'm-123');
   });
 
   it('shows the server error on a 400 response and allows a retry that succeeds', async () => {

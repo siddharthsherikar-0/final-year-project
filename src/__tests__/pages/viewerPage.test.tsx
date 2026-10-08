@@ -148,4 +148,24 @@ describe('ViewerPage phases', () => {
     );
     expect(modelRepository.getAll).not.toHaveBeenCalled();
   });
+
+  it('refetches a stale store instead of showing not-found for a freshly uploaded model', async () => {
+    useModelStore.setState({ models: [makeModel('old1', { name: 'Before Upload' })] });
+    (modelRepository.getAll as ReturnType<typeof vi.fn>).mockResolvedValue([
+      makeModel('old1', { name: 'Before Upload' }),
+      makeModel('new-upload', { name: 'Fresh Upload', fileUrl: '/uploads/new.glb' }),
+    ]);
+
+    renderViewer('new-upload');
+
+    expect(await screen.findByTestId('model-viewer')).toHaveAttribute(
+      'data-url',
+      '/uploads/new.glb',
+    );
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'Fresh Upload',
+    );
+    expect(modelRepository.getAll).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText(/model not found/i)).toBeNull();
+  });
 });

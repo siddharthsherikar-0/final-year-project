@@ -19,14 +19,17 @@ function phaseFor(id: string | undefined): Phase {
 export function ViewerPage() {
   const { id } = useParams<{ id: string }>();
   const { models, fetchModels, selectModel } = useModelStore();
-  const [phase, setPhase] = useState<Phase>(() => phaseFor(id));
+  const [phase, setPhase] = useState<Phase>(() =>
+    useModelStore.getState().models.some((m) => m.id === id) ? 'ready' : 'loading',
+  );
 
   useEffect(() => {
-    if (useModelStore.getState().models.length > 0) {
-      setPhase(phaseFor(id));
+    if (useModelStore.getState().models.some((m) => m.id === id)) {
+      setPhase('ready');
       return;
     }
     let active = true;
+    setPhase('loading');
     void fetchModels().then(() => {
       if (active) setPhase(phaseFor(id));
     });
