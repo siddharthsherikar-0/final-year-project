@@ -7,6 +7,12 @@ export interface UploadModelParams {
   category: string;
   tags: string;
   token: string | null;
+  /**
+   * Data URL of the studio preview rendered once from the uploaded file.
+   * Omitted when generation failed - the server then stores an empty
+   * thumbnailUrl and the gallery falls back to the placeholder.
+   */
+  thumbnail?: string | null;
 }
 
 export interface UploadedModelSummary {
@@ -70,6 +76,9 @@ export function uploadModel(
     formData.append('description', params.description);
     formData.append('category', params.category);
     formData.append('tags', params.tags);
+    if (params.thumbnail) {
+      formData.append('thumbnail', params.thumbnail);
+    }
     xhr.send(formData);
   });
 }

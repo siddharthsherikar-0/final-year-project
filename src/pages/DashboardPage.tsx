@@ -8,7 +8,10 @@ import { useMyModelsStore } from '@/stores/useMyModelsStore';
 import { ModelCard } from '@/components/gallery/ModelCard';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { ButtonLink } from '@/components/ui/ButtonLink';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+import { PageHeader, SectionHeader, StatStrip } from '@/components/studio/PageHeader';
+import { railGridClass } from '@/components/ui/cardLayout';
 
 function initialsOf(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -19,94 +22,40 @@ function initialsOf(name: string): string {
   return (first.charAt(0) + last.charAt(0)).toUpperCase();
 }
 
-interface QuickActionProps {
+interface QuickLinkProps {
   to: string;
   testId: string;
-  title: string;
-  subtitle: string;
+  label: string;
   icon: ReactNode;
 }
 
-function QuickAction({ to, testId, title, subtitle, icon }: QuickActionProps) {
+/**
+ * Quick actions are inline links, not cards. Three bordered tiles used to sit
+ * between the account header and the actual models; as links they stay useful
+ * without competing with the artwork.
+ */
+function QuickLink({ to, testId, label, icon }: QuickLinkProps) {
   return (
     <Link
       to={to}
       data-testid={testId}
-      className="group flex items-start gap-3 rounded-card border border-line bg-surface p-4 shadow-card transition duration-base hover:border-accent/40 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+      className="inline-flex min-h-[40px] items-center gap-2 rounded-md px-1 text-sm font-medium text-ink-muted transition-colors duration-fast hover:text-ink focus-ring"
     >
-      <span
-        aria-hidden="true"
-        className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent-soft/10 text-accent-soft transition-colors group-hover:bg-accent-soft/20"
-      >
+      <span aria-hidden="true" className="text-ink-faint">
         {icon}
       </span>
-      <span className="min-w-0">
-        <span className="block text-sm font-semibold text-ink transition-colors group-hover:text-accent-soft">
-          {title}
-        </span>
-        <span className="mt-0.5 block text-xs text-ink-muted">{subtitle}</span>
-      </span>
+      {label}
     </Link>
-  );
-}
-
-interface StatCardProps {
-  testId: string;
-  label: string;
-  value: number;
-  hint: string;
-}
-
-function StatCard({ testId, label, value, hint }: StatCardProps) {
-  return (
-    <div
-      data-testid={testId}
-      className="rounded-card border border-line bg-surface p-5 shadow-card"
-    >
-      <p className="text-xs font-medium uppercase tracking-wider text-ink-faint">
-        {label}
-      </p>
-      <p
-        className="mt-2 font-display text-3xl font-bold text-ink"
-        data-testid={`${testId}-value`}
-      >
-        {value.toLocaleString('en-US')}
-      </p>
-      <p className="mt-1 text-xs text-ink-muted">{hint}</p>
-    </div>
-  );
-}
-
-interface SectionHeadingProps {
-  testId: string;
-  title: string;
-  href: string;
-  linkLabel: string;
-}
-
-function SectionHeading({ testId, title, href, linkLabel }: SectionHeadingProps) {
-  return (
-    <div className="mb-4 flex items-center justify-between gap-3" data-testid={testId}>
-      <h2 className="font-display text-lg font-semibold text-ink">{title}</h2>
-      <Link
-        to={href}
-        className="text-sm font-medium text-accent-soft transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-md"
-      >
-        {linkLabel}
-        <span aria-hidden="true"> →</span>
-      </Link>
-    </div>
   );
 }
 
 const ICON_UPLOAD = (
   <svg
-    className="h-5 w-5"
+    className="h-4 w-4"
     fill="none"
     stroke="currentColor"
     strokeWidth={1.75}
     viewBox="0 0 24 24"
-    aria-hidden="true"
   >
     <path
       strokeLinecap="round"
@@ -118,12 +67,11 @@ const ICON_UPLOAD = (
 
 const ICON_GALLERY = (
   <svg
-    className="h-5 w-5"
+    className="h-4 w-4"
     fill="none"
     stroke="currentColor"
     strokeWidth={1.75}
     viewBox="0 0 24 24"
-    aria-hidden="true"
   >
     <path
       strokeLinecap="round"
@@ -135,12 +83,11 @@ const ICON_GALLERY = (
 
 const ICON_HEART = (
   <svg
-    className="h-5 w-5"
+    className="h-4 w-4"
     fill="none"
     stroke="currentColor"
     strokeWidth={1.75}
     viewBox="0 0 24 24"
-    aria-hidden="true"
   >
     <path
       strokeLinecap="round"
@@ -214,8 +161,14 @@ export function DashboardPage() {
     .filter((m) => favoriteIds.has(m.id))
     .slice(0, 4);
 
+  const summary = [
+    `${myModels.length} ${myModels.length === 1 ? 'published model' : 'published models'}`,
+    `${favoriteIds.size} saved`,
+    `${galleryModels.length} available`,
+  ].join(' · ');
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
       {loadError && (
         <div
           role="alert"
@@ -237,112 +190,79 @@ export function DashboardPage() {
       {isLoading ? (
         <DashboardSkeleton />
       ) : (
-        <div className="space-y-8">
-          <section
-            aria-label="Profile"
-            data-testid="dashboard-profile"
-            className="rounded-panel border border-line bg-surface p-6 shadow-card"
-          >
-            <div className="flex items-center gap-4">
-              <div
-                aria-hidden="true"
-                data-testid="dashboard-avatar"
-                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-accent-soft/15 font-display text-xl font-bold text-accent-soft"
-              >
-                {initialsOf(user.name)}
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-medium uppercase tracking-wider text-ink-faint">
-                  Studio Dashboard
-                </p>
-                <h1
-                  className="mt-0.5 truncate font-display text-2xl font-bold text-ink"
-                  data-testid="dashboard-name"
+        <div className="space-y-12">
+          {/* Context header - identity is context, not the hero. */}
+          <header data-testid="dashboard-profile">
+            <PageHeader
+              eyebrow="Studio"
+              title="My Studio"
+              description={summary}
+              action={
+                <ButtonLink to="/upload" data-testid="dashboard-upload">
+                  <ICON_UPLOAD_INLINE />
+                  Upload model
+                </ButtonLink>
+              }
+            />
+
+            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <span
+                  aria-hidden="true"
+                  data-testid="dashboard-avatar"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-elevated font-display text-xs font-semibold text-ink"
                 >
-                  {user.name}
-                </h1>
-                <p
-                  className="truncate text-sm text-ink-muted"
-                  data-testid="dashboard-email"
-                >
-                  {user.email}
-                </p>
+                  {initialsOf(user.name)}
+                </span>
+                <div className="min-w-0">
+                  <p
+                    className="truncate text-sm font-medium text-ink"
+                    data-testid="dashboard-name"
+                  >
+                    {user.name}
+                  </p>
+                  <p
+                    className="truncate font-mono text-xs text-ink-faint"
+                    data-testid="dashboard-email"
+                  >
+                    {user.email}
+                  </p>
+                </div>
+              </div>
+
+              <div className="sm:ml-auto">
+                <StatStrip
+                  items={[
+                    { testId: 'stat-uploads', label: 'Published', value: myModels.length },
+                    { testId: 'stat-favorites', label: 'Saved', value: favoriteIds.size },
+                    { testId: 'stat-gallery', label: 'Gallery', value: galleryModels.length },
+                  ]}
+                />
               </div>
             </div>
-          </section>
+          </header>
 
-          <section aria-label="Account statistics">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <StatCard
-                testId="stat-uploads"
-                label="Uploaded models"
-                value={myModels.length}
-                hint="Models you have published"
-              />
-              <StatCard
-                testId="stat-favorites"
-                label="Favorites"
-                value={favoriteIds.size}
-                hint="Models you have saved"
-              />
-              <StatCard
-                testId="stat-gallery"
-                label="Gallery models"
-                value={galleryModels.length}
-                hint="Available to browse"
-              />
-            </div>
-          </section>
-
-          <section aria-label="Quick actions">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <QuickAction
-                to="/upload"
-                testId="quick-upload"
-                title="Upload Model"
-                subtitle="Publish a GLB or GLTF file"
-                icon={ICON_UPLOAD}
-              />
-              <QuickAction
-                to="/"
-                testId="quick-gallery"
-                title="Browse Gallery"
-                subtitle="Explore every published model"
-                icon={ICON_GALLERY}
-              />
-              <QuickAction
-                to="/favorites"
-                testId="quick-favorites"
-                title="Open Favorites"
-                subtitle="Revisit your saved models"
-                icon={ICON_HEART}
-              />
-            </div>
-          </section>
-
-          <section aria-label="Recent uploads">
-            <SectionHeading
+          {/* Models first: the user's own assets lead the page. */}
+          <section aria-label="Your models">
+            <SectionHeader
               testId="section-recent-uploads"
-              title="Recent uploads"
+              title="Your models"
+              description="Assets you have published to the gallery."
               href="/my-models"
-              linkLabel="View all"
+              linkLabel="Manage all"
             />
             {recentUploads.length === 0 ? (
               <div data-testid="empty-uploads">
                 <EmptyState
-                  title="No uploads yet"
-                  description="Publish your first 3D model and it will appear here."
-                  action={
-                    <Link to="/upload">
-                      <Button type="button">Upload Model</Button>
-                    </Link>
-                  }
+                  title="No models yet"
+                  description="Publish your first 3D model and it will appear here with a studio preview."
+                  action={<ButtonLink to="/upload">Upload model</ButtonLink>}
                 />
               </div>
             ) : (
               <div
                 data-testid="recent-grid"
-                className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
+                className={railGridClass(recentUploads.length)}
               >
                 {recentUploads.map((model) => (
                   <ModelCard key={model.id} model={model} />
@@ -351,31 +271,31 @@ export function DashboardPage() {
             )}
           </section>
 
-          <section aria-label="Favorite models">
-            <SectionHeading
+          {/* Recently saved - visual rail, secondary to the user's own models. */}
+          <section aria-label="Recently saved">
+            <SectionHeader
               testId="section-favorites"
-              title="Favorite models"
+              title="Recently saved"
+              description="Models you have bookmarked from the gallery."
               href="/favorites"
-              linkLabel="View all"
+              linkLabel="Open favorites"
             />
             {favoriteModels.length === 0 ? (
               <div data-testid="empty-favorites">
                 <EmptyState
-                  title="No favorites yet"
-                  description="Save models from the gallery and they will show up here."
+                  title="Nothing saved yet"
+                  description="Save models from the gallery and they will collect here."
                   action={
-                    <Link to="/">
-                      <Button type="button" variant="secondary">
-                        Browse Gallery
-                      </Button>
-                    </Link>
+                    <ButtonLink to="/" variant="secondary">
+                      Browse gallery
+                    </ButtonLink>
                   }
                 />
               </div>
             ) : (
               <div
                 data-testid="favorites-grid"
-                className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
+                className={railGridClass(favoriteModels.length)}
               >
                 {favoriteModels.map((model) => (
                   <ModelCard key={model.id} model={model} />
@@ -383,8 +303,51 @@ export function DashboardPage() {
               </div>
             )}
           </section>
+
+          <section aria-label="Quick actions">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line pt-6">
+              <QuickLink
+                to="/upload"
+                testId="quick-upload"
+                label="Upload a model"
+                icon={ICON_UPLOAD}
+              />
+              <QuickLink
+                to="/"
+                testId="quick-gallery"
+                label="Browse gallery"
+                icon={ICON_GALLERY}
+              />
+              <QuickLink
+                to="/favorites"
+                testId="quick-favorites"
+                label="Open favorites"
+                icon={ICON_HEART}
+              />
+            </div>
+          </section>
         </div>
       )}
     </div>
   );
 }
+
+function ICON_UPLOAD_INLINE() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="mr-2 h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 5v14m0-14l-4 4m4-4l4 4M5 19h14"
+      />
+    </svg>
+  );
+}
+

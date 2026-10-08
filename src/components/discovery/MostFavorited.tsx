@@ -1,5 +1,7 @@
 import type { ModelMetadata } from '@/types';
 import { ModelCard } from '@/components/gallery/ModelCard';
+import { SectionHeader } from '@/components/studio/PageHeader';
+import { railGridClass } from '@/components/ui/cardLayout';
 
 interface MostFavoritedProps {
   models: ModelMetadata[];
@@ -17,18 +19,14 @@ export function MostFavorited({ models }: MostFavoritedProps) {
 
   return (
     <section
-      className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8"
+      className="mx-auto max-w-7xl px-4 pb-16 pt-4 sm:px-6 lg:px-8"
       aria-label="Most favorited"
     >
-      <div className="mb-6">
-        <h2 className="font-display text-title font-semibold text-ink">
-          Most favorited
-        </h2>
-        <p className="mt-1.5 text-sm text-ink-muted">
-          Ranked by real favorite counts from the gallery.
-        </p>
-      </div>
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <SectionHeader
+        title="Most saved in the gallery"
+        description="Ranked by real favorite counts, not promoted placements."
+      />
+      <div className={railGridClass(ranked.length)}>
         {ranked.map((model) => (
           <ModelCard key={model.id} model={model} />
         ))}
@@ -36,3 +34,4 @@ export function MostFavorited({ models }: MostFavoritedProps) {
     </section>
   );
 }
+

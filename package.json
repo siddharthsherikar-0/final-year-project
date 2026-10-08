@@ -16,7 +16,8 @@
     "server:dev": "tsx watch server/index.ts",
     "db:seed": "tsx server/seed.ts",
     "db:migrate": "prisma migrate dev",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "db:thumbnails": "node scripts/backfill-thumbnails.mjs"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
@@ -66,3 +67,4 @@
     "vitest": "^2.1.2"
   }
 }
+

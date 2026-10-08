@@ -1,65 +1,86 @@
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import type { ModelCategory, ModelMetadata } from '@/types';
 import { CATEGORIES } from '@/config/categories';
+import { Chip } from '@/components/ui/Chip';
 
 interface CategoryNavProps {
   models: ModelMetadata[];
 }
 
-const chipBase =
-  'inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg';
-
-const chipActive = 'border-accent bg-accent text-white';
-const chipIdle =
-  'border-line bg-elevated text-ink-muted hover:border-ink-faint hover:text-ink';
-
 function categoryCount(models: ModelMetadata[], value: ModelCategory): number {
   return models.filter((m) => m.category === value).length;
 }
 
+function parseSelected(param: string | null): ModelCategory[] {
+  if (!param) return [];
+  const known = new Set<string>(CATEGORIES.map((c) => c.value));
+  return param
+    .split(',')
+    .map((value) => value.trim())
+    .filter((value): value is ModelCategory => known.has(value));
+}
+
+/**
+ * Primary discovery navigation for the gallery.
+ *
+ * This is now the single category control. It reads and writes the URL, so it
+ * stays deep-linkable and back/forward safe, and each chip toggles its category
+ * inside the comma-separated `category` parameter - which preserves the
+ * multi-select behaviour the filter panel used to duplicate.
+ */
 export function CategoryNav({ models }: CategoryNavProps) {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
-  const active = params.get('category');
+  const selected = parseSelected(params.get('category'));
   const hasModels = models.length > 0;
-  const linkTo = (value: ModelCategory | null) => ({
+
+  const linkTo = (next: ModelCategory[]) => ({
     pathname: '/',
-    search: value ? `?category=${value}` : '',
+    search: next.length > 0 ? `?category=${next.join(',')}` : '',
     hash: '#gallery',
   });
 
+  const toggle = (value: ModelCategory) =>
+    linkTo(
+      selected.includes(value)
+        ? selected.filter((entry) => entry !== value)
+        : [...selected, value],
+    );
+
   return (
-    <nav aria-label="Browse by category" className="mb-6 flex flex-wrap gap-2">
-      <Link
-        to={linkTo(null)}
-        aria-current={active ? undefined : 'true'}
-        className={`${chipBase} ${active ? chipIdle : chipActive}`}
+    <nav aria-label="Browse by category" className="flex flex-wrap items-center gap-2">
+      <Chip
+        to={linkTo([])}
+        selected={selected.length === 0}
+        aria-current={selected.length === 0 ? 'true' : undefined}
       >
-        All
-      </Link>
+        All assets
+      </Chip>
+
       {CATEGORIES.map((cat) => {
-        const isActive = active === cat.value;
+        const isActive = selected.includes(cat.value);
         const count = categoryCount(models, cat.value);
         const countText = !hasModels
           ? null
           : count === 0
             ? 'no models yet'
             : `${count} ${count === 1 ? 'model' : 'models'}`;
+
         return (
-          <Link
+          <Chip
             key={cat.value}
-            to={linkTo(cat.value)}
+            to={toggle(cat.value)}
+            selected={isActive}
             aria-current={isActive ? 'true' : undefined}
             aria-label={countText ? `${cat.label}, ${countText}` : cat.label}
-            className={`${chipBase} ${isActive ? chipActive : chipIdle}`}
           >
             {cat.label}
             {countText && (
-              <span aria-hidden="true" className="ml-1.5 tabular-nums opacity-70">
+              <span aria-hidden="true" className="tabular-nums opacity-70">
                 {count}
               </span>
             )}
-          </Link>
+          </Chip>
         );
       })}
     </nav>

@@ -114,7 +114,9 @@ export function UploadDropzone({
           type="file"
           accept=".glb,.gltf"
           data-testid="upload-input"
-          className="sr-only"
+          // Visually hidden until keyboard-focused, then revealed with a focus
+          // ring so keyboard users can see where focus landed.
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-20 focus:rounded-md focus:border focus:border-control focus:bg-surface focus:px-3 focus:py-2 focus:text-xs focus:text-ink focus-ring"
           disabled={disabled}
           onChange={(event) => {
             const selected = event.target.files?.[0];

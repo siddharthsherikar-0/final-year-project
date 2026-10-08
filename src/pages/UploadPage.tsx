@@ -18,6 +18,7 @@ import {
 } from '@/utils/modelMetadata';
 import { uploadModel, type UploadedModelSummary } from '@/utils/uploadRequest';
 import { formatFileSize } from '@/utils/format';
+import { PageHeader } from '@/components/studio/PageHeader';
 import { isFileSizeValid, isValidModelFormat } from '@/utils/validation';
 
 type UploadPhase = 'editing' | 'uploading' | 'success';
@@ -49,6 +50,7 @@ export function UploadPage() {
   const [error, setError] = useState<string | null>(null);
   const [dropError, setDropError] = useState<string | null>(null);
   const [uploaded, setUploaded] = useState<UploadedModelSummary | null>(null);
+  const [thumbnail, setThumbnail] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const submittingRef = useRef(false);
@@ -70,6 +72,7 @@ export function UploadPage() {
     setStats(null);
     setValidation('none');
     setValidationMessage(null);
+    setThumbnail(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -95,6 +98,7 @@ export function UploadPage() {
     setStats(null);
     setValidation('checking');
     setValidationMessage(null);
+    setThumbnail(null);
     setName((current) =>
       current.trim()
         ? current
@@ -167,6 +171,7 @@ export function UploadPage() {
           category,
           tags,
           token,
+          thumbnail,
         },
         (percent) => setProgress(percent),
       );
@@ -197,41 +202,41 @@ export function UploadPage() {
     return null;
   }
 
-  return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="font-display text-2xl font-bold text-ink">
-        Upload Model
-      </h1>
-      <p className="mb-6 mt-1 text-sm text-ink-muted">
-        Drop a GLB or GLTF file, review its details, and publish it to your
-        studio gallery.
-      </p>
+return (
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+      <PageHeader
+        eyebrow="Publish"
+        title="Add a 3D asset"
+        description="Drop a GLB or GLTF file, check the studio preview we generate from it, add the asset details, then publish it to your gallery."
+      />
 
+      <div className="mt-8">
       {phase === 'success' && uploaded ? (
         <div
           role="status"
           data-testid="upload-success"
-          className="rounded-panel border border-success/40 bg-success/10 p-6 text-center"
+          className="rounded-card border border-line bg-surface p-6"
         >
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            className="mx-auto h-10 w-10 text-success"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.75}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M20 6L9 17l-5-5" />
-          </svg>
-          <h2 className="mt-3 font-display text-lg font-semibold text-ink">
-            Your model is live
-          </h2>
-          <p className="mt-1 text-sm text-ink-muted" data-testid="upload-success-name">
-            “{uploaded.name}” finished uploading and is ready to view.
+          {thumbnail && (
+            <img
+              src={thumbnail}
+              alt={`Studio preview of ${uploaded.name}`}
+              data-testid="upload-success-preview"
+              className="aspect-[4/3] w-full rounded-md border border-line object-cover"
+            />
+          )}
+
+          <p className="mt-5 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-faint">
+            Published
           </p>
-          <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row">
+          <h2 className="mt-1 font-display text-xl font-semibold text-ink">
+            {uploaded.name} is live
+          </h2>
+          <p className="mt-2 text-sm text-ink-muted" data-testid="upload-success-name">
+            Your asset is in the gallery with its studio preview. Open it in the
+            viewer to inspect every detail.
+          </p>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <Button
               type="button"
               data-testid="upload-view-model"
@@ -289,11 +294,14 @@ export function UploadPage() {
                 </div>
               }
             >
-              <UploadPreview file={file} />
+              <UploadPreview file={file} onThumbnailReady={setThumbnail} />
             </Suspense>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-faint">
+              Asset details
+            </h2>
             <div>
               <label
                 htmlFor="upload-name"
@@ -308,7 +316,7 @@ export function UploadPage() {
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 disabled={isUploading}
-                className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-60"
+                className="w-full rounded-md border border-control bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus-ring disabled:opacity-60"
               />
             </div>
 
@@ -326,7 +334,7 @@ export function UploadPage() {
                 onChange={(event) => setDescription(event.target.value)}
                 disabled={isUploading}
                 rows={3}
-                className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-60"
+                className="w-full rounded-md border border-control bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus-ring disabled:opacity-60"
               />
             </div>
 
@@ -343,7 +351,7 @@ export function UploadPage() {
                 value={category}
                 onChange={(event) => setCategory(event.target.value)}
                 disabled={isUploading}
-                className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-60"
+                className="w-full rounded-md border border-control bg-surface px-3 py-2 text-sm text-ink focus-ring disabled:opacity-60"
               >
                 {CATEGORIES.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -368,7 +376,7 @@ export function UploadPage() {
                 onChange={(event) => setTags(event.target.value)}
                 disabled={isUploading}
                 placeholder="e.g. character, animated, game-ready"
-                className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-60"
+                className="w-full rounded-md border border-control bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus-ring disabled:opacity-60"
               />
             </div>
 
@@ -390,7 +398,7 @@ export function UploadPage() {
                   className="h-2 w-full overflow-hidden rounded-full bg-line"
                 >
                   <div
-                    className={`h-full rounded-full bg-accent transition-[width] duration-300 motion-reduce:transition-none ${
+                    className={`h-full rounded-full bg-info transition-[width] duration-300 motion-reduce:transition-none ${
                       progress === null ? 'w-2/5' : ''
                     }`}
                     style={
@@ -428,6 +436,8 @@ export function UploadPage() {
           </form>
         </div>
       )}
+      </div>
     </div>
   );
 }
+

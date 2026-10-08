@@ -131,7 +131,7 @@ describe('RecentlyViewed', () => {
         </Routes>
       </MemoryRouter>,
     );
-    await screen.findByText('Model Gallery');
+    await screen.findByText('Discover 3D assets');
     expect(screen.queryByText('Recently viewed')).not.toBeInTheDocument();
   });
 
@@ -148,3 +148,4 @@ describe('RecentlyViewed', () => {
     expect(readHistory()).toEqual(['m1']);
   });
 });
+

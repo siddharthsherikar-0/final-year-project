@@ -34,7 +34,7 @@ export function SearchBar() {
         placeholder="Search models..."
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
-        className="w-full rounded-md border border-line bg-surface py-2 pl-10 pr-4 text-sm text-ink placeholder-ink-faint transition-colors duration-fast focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+        className="w-full rounded-md border border-control bg-surface py-2 pl-10 pr-4 text-sm text-ink placeholder-ink-faint transition-colors duration-fast focus-ring"
       />
     </div>
   );

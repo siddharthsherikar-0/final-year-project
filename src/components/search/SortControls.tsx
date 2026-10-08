@@ -38,7 +38,7 @@ export function SortControls() {
           setSortBy(nextSortBy);
           setSortOrder(nextSortOrder);
         }}
-        className="rounded-md border border-line bg-surface px-3 py-1.5 text-sm text-ink transition-colors duration-fast focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+        className="rounded-md border border-control bg-surface px-3 py-1.5 text-sm text-ink transition-colors duration-fast focus-ring"
       >
         {SORT_OPTIONS.map((opt) => (
           <option key={opt.value} value={opt.value}>

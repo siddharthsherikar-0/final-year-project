@@ -48,4 +48,12 @@ export default tseslint.config(
       globals: globals.node,
     },
   },
+  {
+    // Dev-only tooling: runs in Node, drives a browser page.
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      globals: { ...globals.node, ...globals.browser },
+    },
+  },
 );

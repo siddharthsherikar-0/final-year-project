@@ -29,7 +29,7 @@ export function ViewerShortcuts({ open, onClose }: ViewerShortcutsProps) {
             type="button"
             aria-label="Close shortcuts"
             onClick={onClose}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line bg-elevated text-ink-muted transition-colors hover:bg-line hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line bg-elevated text-ink-muted transition-colors hover:bg-interactive hover:text-ink focus-ring"
           >
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" aria-hidden="true">
               <path d="M6 6l12 12M18 6L6 18" />

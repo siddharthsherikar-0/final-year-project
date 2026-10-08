@@ -8,10 +8,10 @@ import { FilterPanel } from '@/components/search/FilterPanel';
 import { FilterTag } from '@/components/search/FilterTag';
 import { SortControls } from '@/components/search/SortControls';
 import { Hero } from '@/components/landing/Hero';
-import { LatestUploads } from '@/components/landing/LatestUploads';
-import { CategoryNav } from '@/components/discovery/CategoryNav';
 import { RecentlyViewed } from '@/components/discovery/RecentlyViewed';
 import { MostFavorited } from '@/components/discovery/MostFavorited';
+import { CategoryNav } from '@/components/discovery/CategoryNav';
+import { SectionHeader } from '@/components/studio/PageHeader';
 import { CATEGORIES, categoryLabel } from '@/config/categories';
 import type { ModelCategory } from '@/types';
 
@@ -152,6 +152,19 @@ export function HomePage() {
     useFilterStore.setState({ selectedCategories: [] });
   };
 
+  // The hero anchors on real assets rather than abstract decoration.
+  const featured = useMemo(() => {
+    const withPreview = models.filter((model) => Boolean(model.thumbnailUrl));
+    const pool = withPreview.length > 0 ? withPreview : models;
+    return [...pool]
+      .sort((a, b) => {
+        const favourites = (b.favoriteCount ?? 0) - (a.favoriteCount ?? 0);
+        if (favourites !== 0) return favourites;
+        return b.createdAt.localeCompare(a.createdAt);
+      })
+      .slice(0, 4);
+  }, [models]);
+
   if (error) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
@@ -162,68 +175,73 @@ export function HomePage() {
 
   return (
     <div>
-      <Hero stats={stats} isLoading={isLoading} />
-      <RecentlyViewed />
-      <LatestUploads models={models} isLoading={isLoading} />
+      <Hero stats={stats} isLoading={isLoading} featured={featured} />
 
-      <div
+      <RecentlyViewed />
+
+      {/*
+        Discovery is the centrepiece: statement, then category navigation, then
+        search/format refinement, then the models themselves.
+      */}
+      <section
         id="gallery"
-        className="mx-auto max-w-7xl scroll-mt-20 px-4 py-12 sm:px-6 lg:px-8"
+        className="mx-auto max-w-7xl scroll-mt-20 px-4 py-14 sm:px-6 lg:px-8"
+        aria-label="Model gallery"
       >
-        <div className="mb-6">
-          <h1 className="font-display text-2xl font-bold text-ink">Model Gallery</h1>
-          <p className="mt-1 text-sm text-ink-muted">
-            Browse and view 3D models in your browser
-          </p>
-        </div>
+        <SectionHeader
+          title="Discover 3D assets"
+          description="Every asset below is rendered from its own file. Pick a category, refine by format, then open one in the studio."
+        />
 
         <CategoryNav models={models} />
 
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="w-full sm:max-w-md">
+        <div className="mt-6 flex flex-col gap-4 border-t border-line pt-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="w-full lg:max-w-md">
             <SearchBar />
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <SortControls />
-            <FilterTag />
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <FilterPanel />
+            <div className="flex items-center gap-3">
+              <SortControls />
+              <FilterTag />
+            </div>
           </div>
-        </div>
-
-        <div className="mb-6 rounded-panel border border-line bg-surface p-4">
-          <FilterPanel />
         </div>
 
         {countSummary && (
-          <p className="mb-4 text-sm text-ink-muted" data-testid="gallery-count">
+          <p className="mt-5 font-mono text-xs uppercase tracking-[0.14em] text-ink-faint" data-testid="gallery-count">
             {countSummary}
           </p>
         )}
-        <ModelGallery
-          models={filteredModels}
-          isLoading={isLoading}
-          emptyTitle={
-            activeCategory
-              ? `Nothing in ${categoryLabel(activeCategory)} yet`
-              : undefined
-          }
-          emptyDescription={
-            activeCategory
-              ? 'No models have been added to this category. Pick another category, or clear the filter to browse everything.'
-              : undefined
-          }
-          emptyAction={
-            activeCategory ? (
-              <button
-                type="button"
-                onClick={clearCategory}
-                className="text-sm font-medium text-accent-soft transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
-              >
-                Browse all categories
-              </button>
-            ) : undefined
-          }
-        />
-      </div>
+
+        <div className="mt-6">
+          <ModelGallery
+            models={filteredModels}
+            isLoading={isLoading}
+            emptyTitle={
+              activeCategory
+                ? `Nothing in ${categoryLabel(activeCategory)} yet`
+                : undefined
+            }
+            emptyDescription={
+              activeCategory
+                ? 'No models have been added to this category. Pick another category, or clear the filter to browse everything.'
+                : undefined
+            }
+            emptyAction={
+              activeCategory ? (
+                <button
+                  type="button"
+                  onClick={clearCategory}
+                  className="text-sm font-medium text-ink-muted underline decoration-line underline-offset-4 transition-colors hover:text-ink focus-ring"
+                >
+                  Browse all categories
+                </button>
+              ) : undefined
+            }
+          />
+        </div>
+      </section>
 
       <MostFavorited models={models} />
     </div>

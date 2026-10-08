@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/Skeleton';
+import { CARD_RAIL_GRID_CLASS } from '@/components/ui/cardLayout';
 
 export function DashboardSkeleton() {
   return (
@@ -33,7 +34,7 @@ export function DashboardSkeleton() {
 
       <div className="space-y-4">
         <Skeleton className="h-6 w-44" />
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className={CARD_RAIL_GRID_CLASS}>
           <Skeleton className="h-64 rounded-card" />
           <Skeleton className="h-64 rounded-card" />
           <Skeleton className="h-64 rounded-card" />

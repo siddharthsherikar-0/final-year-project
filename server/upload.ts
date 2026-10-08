@@ -39,6 +39,61 @@ const upload = multer({
 
 const router = Router();
 
+/** Guards the base64 field so a malformed client cannot exhaust memory. */
+const MAX_THUMBNAIL_BYTES = 2 * 1024 * 1024;
+
+interface StoredThumbnail {
+  fileName: string;
+  extension: string;
+}
+
+function readMagicBytes(buffer: Buffer): 'jpeg' | 'png' | null {
+  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return 'jpeg';
+  }
+  if (
+    buffer.length >= 8 &&
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47
+  ) {
+    return 'png';
+  }
+  return null;
+}
+
+/**
+ * Persists a client-rendered studio preview.
+ *
+ * The browser renders the asset once (see src/utils/thumbnailRenderer.ts) and
+ * posts the encoded image with the model. A missing or unusable preview is not
+ * an upload failure: the model is stored with an empty thumbnailUrl and the UI
+ * falls back to its placeholder.
+ */
+function saveThumbnail(dataUrl: string, modelFileName: string): StoredThumbnail | null {
+  const match = /^data:image\/(jpeg|png);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl.trim());
+  if (!match) return null;
+
+  const buffer = Buffer.from(match[2], 'base64');
+  if (buffer.length === 0 || buffer.length > MAX_THUMBNAIL_BYTES) return null;
+
+  const magic = readMagicBytes(buffer);
+  if (!magic) return null;
+
+  const extension = magic === 'jpeg' ? 'jpg' : 'png';
+  const stem = modelFileName.replace(/\.[^.]+$/, '');
+  const fileName = `${stem}-thumb.${extension}`;
+
+  try {
+    fs.writeFileSync(path.join(uploadDir, fileName), buffer);
+  } catch {
+    return null;
+  }
+
+  return { fileName, extension };
+}
+
 router.post(
   '/',
   authMiddleware,
@@ -50,11 +105,12 @@ router.post(
         return;
       }
 
-      const { name, description, category, tags } = req.body as {
+      const { name, description, category, tags, thumbnail } = req.body as {
         name?: string;
         description?: string;
         category?: string;
         tags?: string;
+        thumbnail?: string;
       };
 
       if (!name || !description || !category) {
@@ -66,6 +122,12 @@ router.post(
       const ext = path.extname(req.file.originalname).toLowerCase();
       const format = ext.slice(1);
 
+      let thumbnailUrl = '';
+      if (typeof thumbnail === 'string' && thumbnail.length > 0) {
+        const stored = saveThumbnail(thumbnail, req.file.filename);
+        if (stored) thumbnailUrl = `/uploads/${stored.fileName}`;
+      }
+
       const model = await prisma.model.create({
         data: {
           name,
@@ -73,7 +135,7 @@ router.post(
           category,
           format,
           fileUrl: `/uploads/${req.file.filename}`,
-          thumbnailUrl: `/uploads/${req.file.filename}`,
+          thumbnailUrl,
           fileSize: req.file.size,
           tags: tags ? JSON.stringify(tags.split(',').map((t) => t.trim())) : '[]',
           userId: req.userId,

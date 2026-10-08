@@ -1,4 +1,8 @@
 import { useFilterStore } from '@/stores/useFilterStore';
+import {
+  CHIP_BASE_CLASS,
+  CHIP_SELECTED_CLASS,
+} from '@/components/ui/Chip';
 
 export function FilterTag() {
   const selectedCategories = useFilterStore((s) => s.selectedCategories);
@@ -28,14 +32,14 @@ export function FilterTag() {
       {tags.map((tag) => (
         <span
           key={tag.label}
-          className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/15 px-2.5 py-0.5 text-xs font-medium text-accent-soft"
+          className={`${CHIP_BASE_CLASS} ${CHIP_SELECTED_CLASS} pr-1`}
         >
           {tag.label}
           <button
             type="button"
             onClick={tag.onRemove}
             aria-label={`Remove ${tag.label} filter`}
-            className="ml-0.5 rounded-full px-0.5 leading-none text-accent-soft transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="-mr-0.5 rounded-full px-1.5 py-0.5 text-xs leading-none text-accent transition-colors hover:bg-accent/20 hover:text-accent-hover focus-ring"
           >
             &times;
           </button>

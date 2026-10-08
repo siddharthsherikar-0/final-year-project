@@ -1,38 +1,18 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { SearchBar } from '@/components/search/SearchBar';
 import { FilterPanel } from '@/components/search/FilterPanel';
 import { useModelStore } from '@/stores/useModelStore';
-import type { ModelMetadata } from '@/types';
+import { useFilterStore } from '@/stores/useFilterStore';
 
 vi.mock('@/data/modelRepository', () => ({
   modelRepository: {
     getAll: vi.fn(),
     getById: vi.fn(),
-    filter: vi.fn(),
+filter: vi.fn(),
   },
 }));
-
-const makeModel = (
-  id: string,
-  overrides: Partial<ModelMetadata> = {},
-): ModelMetadata => ({
-  id,
-  name: `Model ${id}`,
-  description: `Description ${id}`,
-  category: 'other',
-  format: 'glb',
-  fileUrl: `/models/${id}.glb`,
-  thumbnailUrl: '',
-  fileSize: 1024,
-  hasTextures: false,
-  hasAnimations: false,
-  tags: [],
-  createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: '2024-01-01T00:00:00Z',
-  ...overrides,
-});
 
 beforeEach(() => {
   useModelStore.setState({
@@ -56,14 +36,32 @@ describe('SearchBar', () => {
 });
 
 describe('FilterPanel', () => {
-  it('renders category filters', () => {
+  // Stage 7 consolidated category filtering into CategoryNav (the deep-linkable
+  // discovery navigation). The panel keeps only the refinement it owns, so the
+  // two controls no longer look like equivalent systems.
+  it('refines by format instead of duplicating the category controls', () => {
     render(
       <MemoryRouter>
         <FilterPanel />
       </MemoryRouter>,
     );
-    expect(screen.getByText('Architecture')).toBeInTheDocument();
-    expect(screen.getByText('Characters')).toBeInTheDocument();
+
+    expect(screen.getByText('GLB')).toBeInTheDocument();
+    expect(screen.getByText('GLTF')).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Format filters' })).toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Category filters' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Architecture' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Characters' })).toBeNull();
+  });
+
+  it('toggles a real format filter through the store', () => {
+    render(
+      <MemoryRouter>
+        <FilterPanel />
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'GLTF' }));
+    expect(useFilterStore.getState().selectedFormats).toContain('gltf');
   });
 
   it('renders format filters', () => {
@@ -76,35 +74,17 @@ describe('FilterPanel', () => {
     expect(screen.getByText('GLTF')).toBeInTheDocument();
   });
 
-  it('shows live category counts from the model store', () => {
-    useModelStore.setState({
-      models: [
-        makeModel('m1', { category: 'architecture' }),
-        makeModel('m2', { category: 'architecture' }),
-        makeModel('m3', { category: 'sci-fi' }),
-      ],
-    });
+it('offers no per-category counts, because those live in the discovery nav', () => {
     render(
       <MemoryRouter>
         <FilterPanel />
       </MemoryRouter>,
     );
-    expect(screen.getByRole('button', { name: 'Architecture' })).toHaveTextContent(
-      '2',
-    );
-    expect(screen.getByRole('button', { name: 'Sci-Fi' })).toHaveTextContent(
-      '1',
-    );
-  });
-
-  it('hides counts while the store is empty', () => {
-    render(
-      <MemoryRouter>
-        <FilterPanel />
-      </MemoryRouter>,
-    );
-    expect(
-      screen.getByRole('button', { name: 'Architecture' }),
-    ).not.toHaveTextContent(/^\d+$/);
+    expect(screen.queryByRole('button', { name: /Architecture/ })).toBeNull();
   });
 });
+
+
+
+
+

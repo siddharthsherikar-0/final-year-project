@@ -188,13 +188,13 @@ describe('FilterPanel chips', () => {
         <FilterPanel />
       </MemoryRouter>,
     );
-    const chip = screen.getByRole('button', { name: 'Architecture' });
+    // Stage 7: the panel owns format refinement; category chips moved to the
+    // deep-linkable CategoryNav discovery control.
+    const chip = screen.getByRole('button', { name: 'GLTF' });
     expect(chip).toHaveAttribute('aria-pressed', 'false');
     fireEvent.click(chip);
     expect(chip).toHaveAttribute('aria-pressed', 'true');
-    expect(useFilterStore.getState().selectedCategories).toContain(
-      'architecture',
-    );
+    expect(useFilterStore.getState().selectedFormats).toContain('gltf');
   });
 });
 
@@ -223,3 +223,4 @@ describe('ModelCard favorites', () => {
     ).not.toBeInTheDocument();
   });
 });
+

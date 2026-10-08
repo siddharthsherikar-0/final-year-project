@@ -1,19 +1,23 @@
+import { CARD_GRID_CLASS } from '@/components/ui/cardLayout';
+import { Skeleton } from '@/components/ui/Skeleton';
+
 export function GallerySkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+    <div className={CARD_GRID_CLASS} aria-hidden="true">
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
           className="animate-pulse overflow-hidden rounded-card border border-line bg-surface motion-reduce:animate-none"
         >
-          <div className="h-40 w-full bg-elevated" />
+          <div className="aspect-[4/3] w-full border-b border-line bg-elevated" />
           <div className="p-4">
-            <div className="h-4 w-3/4 rounded bg-line" />
-            <div className="mt-3 h-3 w-full rounded bg-elevated" />
-            <div className="mt-2 h-3 w-2/3 rounded bg-elevated" />
-            <div className="mt-4 flex gap-2">
-              <div className="h-5 w-12 rounded-full bg-line" />
-              <div className="h-5 w-16 rounded-full bg-line" />
+            <Skeleton className="h-4 w-3/4 rounded bg-interactive" />
+            <Skeleton className="mt-2.5 h-3 w-full rounded bg-interactive/70" />
+            <Skeleton className="mt-2 h-3 w-2/3 rounded bg-interactive/70" />
+            <div className="mt-3 flex items-center gap-2 border-t border-line pt-3">
+              <Skeleton className="h-3 w-10 rounded bg-interactive/60" />
+              <Skeleton className="h-3 w-16 rounded bg-interactive/60" />
+              <Skeleton className="ml-auto h-3 w-12 rounded bg-interactive/60" />
             </div>
           </div>
         </div>

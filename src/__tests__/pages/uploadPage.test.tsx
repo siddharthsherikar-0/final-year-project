@@ -337,9 +337,14 @@ describe('UploadPage', () => {
     });
 
     await screen.findByTestId('upload-success');
+    // Stage 7 success copy names the asset in its heading and points at the
+    // studio instead of repeating the old sentence in quotes.
     expect(screen.getByTestId('upload-success-name')).toHaveTextContent(
-      'Castle',
+      /gallery with its studio preview/i,
     );
+    expect(
+      screen.getByRole('heading', { name: /Castle is live/i }),
+    ).toBeInTheDocument();
     expect(screen.queryByTestId('upload-preview')).toBeNull();
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
     expect(screen.queryByTestId('upload-progress')).toBeNull();

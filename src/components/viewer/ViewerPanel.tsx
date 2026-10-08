@@ -54,7 +54,7 @@ export function ViewerPanel({ open, onClose, modelName, dpr }: ViewerPanelProps)
           type="button"
           aria-label="Close panel"
           onClick={onClose}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line bg-elevated text-ink-muted transition-colors hover:bg-line hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-control bg-elevated text-ink-muted transition-colors hover:bg-interactive hover:text-ink focus-ring"
         >
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" aria-hidden="true">
             <path d="M6 6l12 12M18 6L6 18" />
@@ -84,10 +84,10 @@ export function ViewerPanel({ open, onClose, modelName, dpr }: ViewerPanelProps)
               role="radio"
               aria-checked={environment === preset.id}
               onClick={() => setEnvironment(preset.id)}
-              className={`flex-1 rounded-md border px-2 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+              className={`flex-1 rounded-md border px-2 py-1.5 text-xs font-medium transition-colors focus-ring ${
                 environment === preset.id
-                  ? 'border-accent bg-accent-soft text-accent'
-                  : 'border-line bg-elevated text-ink-muted hover:bg-line hover:text-ink'
+                  ? 'border-accent bg-accent text-on-accent'
+                  : 'border-control bg-elevated text-ink-muted hover:bg-interactive hover:text-ink'
               }`}
             >
               {preset.label}
@@ -109,7 +109,7 @@ export function ViewerPanel({ open, onClose, modelName, dpr }: ViewerPanelProps)
               id="viewer-clip-select"
               value={activeClip}
               onChange={(event) => setActiveClip(Number(event.target.value))}
-              className="min-w-0 flex-1 rounded-md border border-line bg-elevated px-2 py-1.5 text-xs text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="min-w-0 flex-1 rounded-md border border-control bg-elevated px-2 py-1.5 text-xs text-ink focus-ring"
             >
               {animationClips.map((clip, index) => (
                 <option key={clip} value={index}>
@@ -122,10 +122,10 @@ export function ViewerPanel({ open, onClose, modelName, dpr }: ViewerPanelProps)
               aria-label={isPlaying ? 'Pause animation' : 'Play animation'}
               aria-pressed={isPlaying}
               onClick={togglePlaying}
-              className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+              className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors focus-ring ${
                 isPlaying
-                  ? 'border-accent bg-accent-soft text-accent'
-                  : 'border-line bg-elevated text-ink-muted hover:bg-line hover:text-ink'
+                  ? 'border-accent bg-accent text-on-accent'
+                  : 'border-control bg-elevated text-ink-muted hover:bg-interactive hover:text-ink'
               }`}
             >
               {isPlaying ? 'Pause' : 'Play'}

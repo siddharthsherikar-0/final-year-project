@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { useModelStore } from '@/stores/useModelStore';
 import { useFavoriteStore } from '@/stores/useFavoriteStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { ModelCard } from '@/components/gallery/ModelCard';
 import { Spinner } from '@/components/ui/Spinner';
-import { Button } from '@/components/ui/Button';
+import { ButtonLink } from '@/components/ui/ButtonLink';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { PageHeader } from '@/components/studio/PageHeader';
+import { CARD_GRID_CLASS } from '@/components/ui/cardLayout';
 
 export function FavoritesPage() {
   const { models, isLoading, fetchModels } = useModelStore();
@@ -24,39 +26,56 @@ export function FavoritesPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
-        <p className="text-ink-muted">Please log in to view your favorites.</p>
-        <Link to="/login" className="mt-4 inline-block">
-          <Button variant="primary">Login</Button>
-        </Link>
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <EmptyState
+          title="Sign in to see your saved assets"
+          description="Your favorites are tied to your account, so you can pick up browsing on any device."
+          action={<ButtonLink to="/login">Log in</ButtonLink>}
+        />
       </div>
     );
   }
 
   const favoriteModels = models.filter((m) => favoriteIds.has(m.id));
+  const busy = isLoading || favLoading;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="mb-6 font-display text-2xl font-bold text-ink">My Favorites</h1>
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+      <PageHeader
+        eyebrow="Library"
+        title="My Favorites"
+        description={
+          busy
+            ? 'Loading your saved assets.'
+            : favoriteModels.length === 0
+              ? 'Assets you save from the gallery collect here.'
+              : `${favoriteModels.length} saved ${favoriteModels.length === 1 ? 'asset' : 'assets'}, ready to open in the studio.`
+        }
+      />
 
-      {isLoading || favLoading ? (
-        <div className="flex h-64 items-center justify-center">
-          <Spinner size="lg" />
-        </div>
-      ) : favoriteModels.length === 0 ? (
-        <div className="py-16 text-center">
-          <p className="text-ink-muted">You haven't favorited any models yet.</p>
-          <Link to="/" className="mt-4 inline-block">
-            <Button variant="secondary">Browse Gallery</Button>
-          </Link>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {favoriteModels.map((model) => (
-            <ModelCard key={model.id} model={model} />
-          ))}
-        </div>
-      )}
+      <div className="mt-8">
+        {busy ? (
+          <div className="flex h-64 items-center justify-center">
+            <Spinner size="lg" />
+          </div>
+        ) : favoriteModels.length === 0 ? (
+          <EmptyState
+            title="Nothing saved yet"
+            description="Open any model and save it to build your own shelf of assets."
+            action={
+              <ButtonLink to="/" variant="secondary">
+                Browse the gallery
+              </ButtonLink>
+            }
+          />
+        ) : (
+          <div className={CARD_GRID_CLASS}>
+            {favoriteModels.map((model) => (
+              <ModelCard key={model.id} model={model} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

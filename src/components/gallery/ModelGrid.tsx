@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { ModelMetadata } from '@/types';
 import { ModelCard } from './ModelCard';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { CARD_GRID_CLASS } from '@/components/ui/cardLayout';
 
 interface ModelGridProps {
   models: ModelMetadata[];
@@ -30,7 +31,7 @@ export function ModelGrid({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+    <div className={CARD_GRID_CLASS}>
       {models.map((model) => (
         <ModelCard key={model.id} model={model} />
       ))}

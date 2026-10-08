@@ -1,8 +1,17 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import {
+  AuthLayout,
+  AuthCardTitle,
+  AuthProductName,
+} from '@/components/auth/AuthLayout';
+
+const labelClass = 'mb-1.5 block text-sm font-medium text-ink-muted';
+
+const inputClass =
+  'w-full rounded-md border border-control bg-elevated px-3 py-2 text-sm text-ink placeholder-ink-faint transition-colors duration-fast focus-ring';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -18,49 +27,78 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-[60vh] items-center justify-center">
-      <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-        <h1 className="mb-6 text-center text-2xl font-bold text-gray-900">Login</h1>
-
-        {error && (
-          <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-
-          <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading ? <Spinner size="sm" /> : 'Login'}
-          </Button>
-        </form>
-
-        <p className="mt-4 text-center text-sm text-gray-500">
-          Don't have an account?{' '}
-          <Link to="/register" className="text-blue-600 hover:underline">
-            Register
+    <AuthLayout
+      title="Your 3D assets, in one studio"
+      description="Sign in to publish models, save assets to your library, and open any GLB or GLTF file in the real-time viewer."
+      footer={
+        <>
+          Don&apos;t have an account?{' '}
+          <Link
+            to="/register"
+            className="rounded-sm font-medium text-ink underline decoration-line underline-offset-4 transition-colors hover:text-ink focus-ring"
+          >
+            Create one
           </Link>
-        </p>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <AuthProductName />
+      <AuthCardTitle>Login</AuthCardTitle>
+
+      {error && (
+        <div
+          role="alert"
+          className="mt-4 rounded-md border border-danger/40 bg-danger/10 p-3 text-sm text-danger"
+        >
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <div>
+          <label htmlFor="login-email" className={labelClass}>
+            Email
+          </label>
+          <input
+            id="login-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className={inputClass}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="login-password" className={labelClass}>
+            Password
+          </label>
+          <input
+            id="login-password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className={inputClass}
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="inline-flex min-h-[44px] w-full items-center justify-center rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-on-accent transition-[background-color,transform] duration-base hover:bg-accent-hover active:translate-y-px focus-ring disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
+        >
+          {isLoading ? (
+            <>
+              <Spinner size="sm" className="mr-2 !text-on-accent" />
+              Signing in.
+            </>
+          ) : (
+            'Login'
+          )}
+        </button>
+      </form>
+    </AuthLayout>
   );
 }
+

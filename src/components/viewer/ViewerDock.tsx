@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { useViewerStore, type EnvironmentPreset } from '@/stores/useViewerStore';
 
 interface IconButtonProps {
@@ -10,7 +11,7 @@ interface IconButtonProps {
 }
 
 const IDLE_CLASS =
-  'border-line bg-elevated text-ink-muted hover:bg-line hover:text-ink';
+  'border-line bg-elevated text-ink-muted hover:bg-interactive hover:text-ink';
 const ACTIVE_CLASS =
   'border-accent bg-accent-soft text-accent hover:bg-accent-soft hover:text-accent';
 
@@ -22,21 +23,36 @@ function IconButton({
   onClick,
   children,
 }: IconButtonProps) {
+  // The tooltip keeps the existing CSS reveal (hover + focus-visible) and is
+  // now exposed to assistive tech: role="tooltip" plus aria-describedby on the
+  // trigger, so the hint is announced instead of being hover-only decoration.
+  const tooltipId = useId();
+
   return (
     <button
       type="button"
       aria-label={label}
+      aria-describedby={tooltipId}
       aria-pressed={active}
       disabled={disabled}
       onClick={onClick}
-      className={`group relative inline-flex h-9 w-9 items-center justify-center rounded-md border transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:ring-offset-bg disabled:cursor-not-allowed disabled:opacity-40 ${
+      className={`group relative inline-flex h-9 w-9 items-center justify-center rounded-md border border-control transition-[background-color,border-color,color,transform] duration-fast active:translate-y-px after:absolute after:-inset-y-2 after:-inset-x-1 after:content-[''] focus-ring-tight disabled:cursor-not-allowed disabled:opacity-40 motion-reduce:transition-none ${
         active ? ACTIVE_CLASS : IDLE_CLASS
       }`}
     >
       {children}
-      <span className="pointer-events-none absolute bottom-full mb-2 whitespace-nowrap rounded-md border border-line bg-elevated px-2 py-1 text-[11px] font-medium text-ink opacity-0 shadow-card transition-opacity duration-fast group-hover:opacity-100 group-focus-visible:opacity-100">
+      <span
+        id={tooltipId}
+        role="tooltip"
+        className="pointer-events-none absolute bottom-full mb-2 whitespace-nowrap rounded-md border border-line bg-elevated px-2 py-1 text-[11px] font-medium text-ink opacity-0 shadow-card transition-opacity duration-fast group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none"
+      >
         {label}
-        {shortcut && <kbd className="ml-1.5 font-mono text-ink-faint">{shortcut}</kbd>}
+        {shortcut && (
+          <>
+            <kbd className="ml-1.5 font-mono text-ink-faint">{shortcut}</kbd>
+            <span className="sr-only">, keyboard shortcut {shortcut}</span>
+          </>
+        )}
       </span>
     </button>
   );
@@ -209,7 +225,7 @@ export function ViewerDock({
     <div
       role="toolbar"
       aria-label="Viewer controls"
-      className="pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-1.5 rounded-panel border border-line bg-surface/90 p-1.5 shadow-lift backdrop-blur"
+      className="pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-1.5 rounded-panel border border-line bg-overlay-panel/90 p-1.5 shadow-lift backdrop-blur"
     >
       <IconButton label="Reset camera" shortcut="R" onClick={onReset}>
         {ICONS.reset}

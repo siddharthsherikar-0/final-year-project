@@ -1,27 +1,26 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import {
+  BUTTON_BASE_CLASS,
+  buttonVariantClasses,
+  type ButtonVariant,
+} from './buttonVariants';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost';
+  variant?: ButtonVariant;
   children: ReactNode;
 }
-
-const variantClasses = {
-  primary:
-    'bg-accent text-white hover:bg-accent-hover focus-visible:ring-accent',
-  secondary:
-    'border border-line bg-elevated text-ink hover:bg-line focus-visible:ring-ink-faint',
-  ghost: 'text-ink-muted hover:bg-surface hover:text-ink focus-visible:ring-ink-faint',
-};
 
 export function Button({
   variant = 'primary',
   children,
   className = '',
+  type = 'button',
   ...props
 }: ButtonProps) {
   return (
     <button
-      className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:cursor-not-allowed disabled:opacity-50 ${variantClasses[variant]} ${className}`}
+      type={type}
+      className={`${BUTTON_BASE_CLASS} ${buttonVariantClasses[variant]} ${className}`}
       {...props}
     >
       {children}

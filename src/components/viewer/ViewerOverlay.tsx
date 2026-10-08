@@ -89,7 +89,7 @@ export function ViewerOverlay({
     >
       <div className="h-1 w-48 overflow-hidden rounded-full bg-line">
         <div
-          className="h-full rounded-full bg-accent transition-[width] duration-base"
+          className="h-full rounded-full bg-info transition-[width] duration-base"
           style={{ width: `${percent}%` }}
         />
       </div>

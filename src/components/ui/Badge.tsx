@@ -6,7 +6,7 @@ interface BadgeProps {
 }
 
 const variantClasses = {
-  default: 'bg-line text-ink-muted',
+  default: 'bg-elevated text-ink-muted',
   success: 'bg-success/15 text-success',
   warning: 'bg-warning/15 text-warning',
   error: 'bg-danger/15 text-danger',

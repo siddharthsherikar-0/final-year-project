@@ -23,7 +23,8 @@ const STATUS: Record<
 > = {
   checking: {
     label: 'Validating file…',
-    className: 'border-warning/40 bg-warning/10 text-warning',
+    // System progress, not a caution -> --info.
+    className: 'border-info/40 bg-info/10 text-info',
     testId: 'upload-status-checking',
   },
   valid: {
@@ -111,7 +112,7 @@ export function UploadFileCard({
           data-testid="upload-remove-file"
           disabled={disabled}
           onClick={onRemove}
-          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-line bg-elevated text-ink-muted transition-colors hover:bg-line hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-line bg-elevated text-ink-muted transition-colors hover:bg-interactive hover:text-ink focus-ring disabled:cursor-not-allowed disabled:opacity-50"
         >
           <svg
             aria-hidden="true"

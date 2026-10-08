@@ -4,6 +4,7 @@ import { useModelStore } from '@/stores/useModelStore';
 import { useRecentStore } from '@/stores/useRecentStore';
 import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
+import { ButtonLink } from '@/components/ui/ButtonLink';
 import { loadModelViewer } from '@/components/viewer/lazyModelViewer';
 
 const ModelViewer = lazy(loadModelViewer);
@@ -64,9 +65,9 @@ export function ViewerPage() {
             <p aria-live="polite" data-testid="viewer-page-message">
               <span className="text-ink-muted">Loading model...</span>
             </p>
-            <Link to="/">
-              <Button variant="secondary">Back to Gallery</Button>
-            </Link>
+            <ButtonLink to="/" variant="secondary">
+              Back to Gallery
+            </ButtonLink>
           </>
         ) : (
           <>
@@ -82,9 +83,9 @@ export function ViewerPage() {
               >
                 Try again
               </Button>
-              <Link to="/">
-                <Button variant="secondary">Back to Gallery</Button>
-              </Link>
+              <ButtonLink to="/" variant="secondary">
+                Back to Gallery
+              </ButtonLink>
             </div>
           </>
         )}
@@ -99,9 +100,9 @@ export function ViewerPage() {
         <p className="text-xs text-ink-muted">
           It may have been removed, or the link is out of date.
         </p>
-        <Link to="/">
-          <Button variant="secondary">Back to Gallery</Button>
-        </Link>
+        <ButtonLink to="/" variant="secondary">
+          Back to Gallery
+        </ButtonLink>
       </div>
     );
   }
@@ -111,7 +112,7 @@ export function ViewerPage() {
       <div className="flex items-center justify-between border-b border-line bg-surface px-4 py-2">
         <Link
           to={`/model/${id}`}
-          className="inline-flex items-center gap-1 rounded-md bg-elevated px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-line focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:ring-offset-bg"
+          className="inline-flex items-center gap-1 rounded-md bg-elevated px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-interactive focus-ring-tight"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

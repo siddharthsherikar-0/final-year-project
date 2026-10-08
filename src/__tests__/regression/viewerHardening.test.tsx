@@ -315,7 +315,7 @@ describe('Phase I viewer hardening regressions', () => {
     expect(loseContext).toHaveBeenCalledTimes(1);
   });
 
-  it('revokes the upload preview blob URL and clears the GLTF cache on unmount', async () => {
+  it('revokes the upload preview blob URL and never mounts a GLTF viewer for it', async () => {
     Object.defineProperty(URL, 'createObjectURL', {
       value: vi.fn(() => 'blob:preview-1'),
       configurable: true,
@@ -335,9 +335,13 @@ describe('Phase I viewer hardening regressions', () => {
     expect(await screen.findByTestId('upload-preview')).toBeInTheDocument();
     expect(URL.createObjectURL).toHaveBeenCalledWith(file);
 
+    // Stage 7: the preview renders one studio still image instead of a live
+    // R3F canvas, so no GLTF cache entry is created and nothing leaks.
+    await waitFor(() => expect(URL.revokeObjectURL).toHaveBeenCalled());
+    expect(gltf.clear).not.toHaveBeenCalled();
+    expect(useGLTF).not.toHaveBeenCalled();
+
     unmount();
-    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:preview-1');
-    expect(vi.mocked(gltf.clear)).toHaveBeenCalledWith('blob:preview-1');
   });
 
   it('recovers a crashed viewer route through the route error boundary', () => {
@@ -375,7 +379,7 @@ describe('Phase I viewer hardening regressions', () => {
         '/login',
         () =>
           expect(
-            screen.getByRole('heading', { name: 'Login' }),
+            screen.getByRole('heading', { name: /login/i }),
           ).toBeInTheDocument(),
       ],
       [
@@ -419,3 +423,4 @@ describe('Phase I viewer hardening regressions', () => {
     }
   });
 });
+

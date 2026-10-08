@@ -344,12 +344,12 @@ describe('DashboardPage', () => {
     );
     expect(
       within(screen.getByTestId('section-recent-uploads')).getByRole('link', {
-        name: /view all/i,
+        name: /manage all/i,
       }),
     ).toHaveAttribute('href', '/my-models');
     expect(
       within(screen.getByTestId('section-favorites')).getByRole('link', {
-        name: /view all/i,
+        name: /open favorites/i,
       }),
     ).toHaveAttribute('href', '/favorites');
   });
@@ -407,3 +407,4 @@ describe('DashboardPage', () => {
     expect(container.querySelectorAll('canvas')).toHaveLength(0);
   });
 });
+

@@ -161,7 +161,7 @@ describe('auth synchronization across protected surfaces (token-only session)', 
       await screen.findByRole('heading', { name: 'My Favorites' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("You haven't favorited any models yet."),
+      screen.getByText(/nothing saved yet/i),
     ).toBeInTheDocument();
     expect(screen.queryByText('LOGIN_ROUTE')).toBeNull();
     expect(meCalls()).toHaveLength(0);
@@ -192,3 +192,4 @@ describe('auth synchronization across protected surfaces (token-only session)', 
     expect(localStorage.getItem('user')).toBe(JSON.stringify(hydrated));
   });
 });
+

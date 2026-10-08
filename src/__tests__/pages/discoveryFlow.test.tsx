@@ -94,7 +94,7 @@ beforeEach(() => {
 describe('Discovery flow', () => {
   it('walks gallery to detail to viewer and back, recording history', async () => {
     renderApp();
-    await screen.findByText('Model Gallery');
+    await screen.findByText('Discover 3D assets');
     const gallery = document.getElementById('gallery')!;
     fireEvent.click(within(gallery).getByText('Alpha House').closest('a')!);
     expect(await screen.findByText('Open in Studio')).toBeInTheDocument();
@@ -103,7 +103,7 @@ describe('Discovery flow', () => {
     fireEvent.click(screen.getByText('Back to Model'));
     expect(await screen.findByText('Open in Studio')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('link', { name: 'Gallery' }));
-    expect(await screen.findByText('Model Gallery')).toBeInTheDocument();
+    expect(await screen.findByText('Discover 3D assets')).toBeInTheDocument();
     expect(
       JSON.parse(window.localStorage.getItem('recentlyViewed')!),
     ).toEqual(['m1']);
@@ -111,7 +111,7 @@ describe('Discovery flow', () => {
 
   it('keeps the category filter when returning from a model', async () => {
     renderApp(['/?category=architecture']);
-    await screen.findByText('Model Gallery');
+    await screen.findByText('Discover 3D assets');
     await waitFor(() =>
       expect(useFilterStore.getState().selectedCategories).toEqual([
         'architecture',
@@ -121,7 +121,7 @@ describe('Discovery flow', () => {
     fireEvent.click(within(gallery).getByText('Alpha House').closest('a')!);
     await screen.findByText('Open in Studio');
     fireEvent.click(screen.getByRole('link', { name: 'Gallery' }));
-    await screen.findByText('Model Gallery');
+    await screen.findByText('Discover 3D assets');
     expect(useFilterStore.getState().selectedCategories).toEqual([
       'architecture',
     ]);
@@ -141,3 +141,4 @@ describe('Discovery flow', () => {
     expect(useModelStore.getState().models.length).toBe(3);
   });
 });
+

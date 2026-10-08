@@ -2,11 +2,88 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Obsidian Studio — semantic design tokens.
+ *
+ * Each palette color is stored as a space-separated RGB channel triplet
+ * (`--token-ch`) and exposed as the readable color (`--token`, e.g. `--canvas`).
+ * The channels exist so Tailwind's `<alpha-value>` opacity modifiers keep
+ * working (`bg-accent/20`, `text-ink/10`, `border-danger/40`, ...), which a
+ * plain hex value cannot express.
+ *
+ * Components consume the semantic tokens (or the Tailwind utilities mapped to
+ * them in tailwind.config.ts) — never raw hex.
+ */
+:root {
+  /* Surfaces */
+  --canvas-ch: 8 9 11;
+  --surface-ch: 14 16 20;
+  --elevated-ch: 21 24 32;
+  --interactive-ch: 29 33 42;
+
+  --canvas: rgb(var(--canvas-ch));
+  --surface: rgb(var(--surface-ch));
+  --elevated: rgb(var(--elevated-ch));
+  --interactive: rgb(var(--interactive-ch));
+  --scrim: rgb(8 9 11 / 0.72);
+  --overlay-panel: rgb(16 19 25);
+
+  /* Borders */
+  --border-hairline-ch: 42 49 64;
+  --border-control-ch: 96 106 122;
+  --border-strong-ch: 167 171 180;
+
+  --border-hairline: rgb(var(--border-hairline-ch));
+  --border-control: rgb(var(--border-control-ch));
+  --border-strong: rgb(var(--border-strong-ch));
+
+  /* Text hierarchy */
+  --text-primary-ch: 237 235 231;
+  --text-secondary-ch: 167 171 180;
+  --text-muted-ch: 126 133 147;
+  --text-on-accent-ch: 11 12 15;
+
+  --text-primary: rgb(var(--text-primary-ch));
+  --text-secondary: rgb(var(--text-secondary-ch));
+  --text-muted: rgb(var(--text-muted-ch));
+  --text-on-accent: rgb(var(--text-on-accent-ch));
+
+  /* Accent — champagne gold, reserved for primary actions, active state, focus */
+  --accent-ch: 214 168 95;
+  --accent-hover-ch: 227 188 124;
+  --accent-muted-ch: 139 107 63;
+
+  --accent: rgb(var(--accent-ch));
+  --accent-hover: rgb(var(--accent-hover-ch));
+  --accent-muted: rgb(var(--accent-muted-ch));
+  --accent-subtle: rgb(214 168 95 / 0.12);
+
+  /* Status */
+  --info-ch: 94 140 255;
+  --success-ch: 61 214 140;
+  --warning-ch: 227 179 65;
+  --error-ch: 239 107 107;
+
+  --info: rgb(var(--info-ch));
+  --success: rgb(var(--success-ch));
+  --warning: rgb(var(--warning-ch));
+  --error: rgb(var(--error-ch));
+
+  /* Focus */
+  --focus-ch: 201 205 214;
+  --focus: rgb(var(--focus-ch));
+
+  /* Viewer scene — bound in Stage 8, declared here so the token set is complete */
+  --viewer-bg: var(--canvas);
+  --viewer-grid: var(--border-hairline);
+  --viewer-axis: rgb(58 66 80);
+}
+
 @layer base {
   html {
     @apply antialiased scroll-smooth;
     scrollbar-width: thin;
-    scrollbar-color: theme('colors.line') theme('colors.bg');
+    scrollbar-color: var(--border-hairline) var(--canvas);
   }
 
   body {
@@ -23,7 +100,7 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: theme('colors.bg');
+    background: var(--canvas);
   }
 
   ::-webkit-scrollbar-thumb {
@@ -50,11 +127,41 @@
   }
 }
 
+/*
+ * Forced-colors mode: let the OS palette own the focus indicator.
+ * Declared outside @layer so it is always emitted verbatim.
+ */
+@media (forced-colors: active) {
+  .focus-ring:focus-visible {
+    outline: 2px solid CanvasText;
+    outline-offset: 2px;
+  }
+}
+
 @layer components {
+  /*
+   * Single focus-ring strategy. Replaces the hand-written
+   * `focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2
+   * focus-visible:ring-offset-bg` string that components currently repeat.
+   * --focus (#C9CDD6) clears 3:1 against every surface AND against the gold
+   * accent fill, which the old accent-based ring did not. Written with
+   * `outline` (not @apply) so the rule does not depend on utility generation
+   * and keeps working on accent-filled controls.
+   */
+  .focus-ring:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .focus-ring-tight:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+  }
+
   .studio-grid {
     background-image:
-      linear-gradient(to right, theme('colors.line') 1px, transparent 1px),
-      linear-gradient(to bottom, theme('colors.line') 1px, transparent 1px);
+      linear-gradient(to right, var(--border-hairline) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--border-hairline) 1px, transparent 1px);
     background-size: 56px 56px;
     -webkit-mask-image: radial-gradient(
       ellipse 70% 60% at 50% 0%,

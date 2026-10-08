@@ -277,13 +277,13 @@ export function ModelViewer({ modelUrl, modelName, className = '' }: ModelViewer
               <button
                 type="button"
                 onClick={retry}
-                className="rounded-md border border-line bg-elevated px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:bg-line focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="rounded-md border border-control bg-elevated px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:bg-interactive focus-ring"
               >
                 Restart viewer
               </button>
               <a
                 href="/"
-                className="rounded-md border border-line bg-elevated px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:bg-line focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="rounded-md border border-control bg-elevated px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:bg-interactive focus-ring"
               >
                 Back to Gallery
               </a>

@@ -15,6 +15,7 @@ const ModelViewer = lazy(loadModelViewer);
 import { categoryLabel } from '@/config/categories';
 import { formatFileSize, formatDate } from '@/utils/format';
 import { primaryCtaClass, secondaryCtaClass } from '@/components/landing/Hero';
+import { CARD_RELATED_GRID_CLASS } from '@/components/ui/cardLayout';
 
 type Phase = 'loading' | 'ready' | 'error';
 
@@ -194,13 +195,15 @@ export function ModelDetailPage() {
     <div>
       <section className="relative overflow-hidden border-b border-line">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-          <div className="absolute -top-40 right-0 h-96 w-96 rounded-full bg-accent/20 blur-[110px]" />
           <div className="studio-grid absolute inset-0 opacity-40" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+        <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
           <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-sm">
-            <Link to={galleryTo} className="text-accent-soft hover:underline">
+            <Link
+              to={galleryTo}
+              className="rounded-sm text-ink-muted transition-colors hover:text-ink focus-ring"
+            >
               Gallery
             </Link>
             <span aria-hidden="true" className="text-ink-faint">
@@ -208,7 +211,7 @@ export function ModelDetailPage() {
             </span>
             <Link
               to={`/?category=${model.category}#gallery`}
-              className="text-accent-soft hover:underline"
+              className="rounded-sm text-ink-muted transition-colors hover:text-ink focus-ring"
             >
               {categoryLabel(model.category)}
             </Link>
@@ -220,47 +223,56 @@ export function ModelDetailPage() {
             </span>
           </nav>
 
-          <div className="mt-5 flex flex-wrap items-center gap-2">
-            <Link
-              to={`/?category=${model.category}#gallery`}
-              aria-label={`Browse ${categoryLabel(model.category)} models`}
-              className="rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
-            >
-              <Badge variant="success">{categoryLabel(model.category)}</Badge>
-            </Link>
-            <Badge>{model.format.toUpperCase()}</Badge>
-            {model.tags.map((tag) => (
-              <Badge key={tag} variant="warning">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-
+          {/* Identity first: the title names the asset before any chrome. */}
           <h1 className="mt-4 break-words font-display text-title font-bold text-ink">
             {model.name}
           </h1>
 
-          <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-muted">
-            <span>
-              by <span className="text-ink">{model.author ?? 'Unknown'}</span>
-            </span>
-            <span aria-hidden="true" className="text-ink-faint">
-              ·
-            </span>
-            <span>{model.license ?? 'License unspecified'}</span>
-            <span aria-hidden="true" className="text-ink-faint">
-              ·
-            </span>
-            <span>Added {formatDate(model.createdAt)}</span>
-          </p>
-
           {model.description && (
-            <p className="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted">
+            <p className="mt-3 max-w-3xl text-base leading-relaxed text-ink-muted">
               {model.description}
             </p>
           )}
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          {/* Technical facts stay mono and quiet; gold is not spent here. */}
+          <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-faint">
+            <span>{model.format}</span>
+            <span aria-hidden="true">·</span>
+            <Link
+              to={`/?category=${model.category}#gallery`}
+              className="rounded-sm normal-case tracking-normal transition-colors hover:text-ink focus-ring"
+            >
+              {categoryLabel(model.category)}
+            </Link>
+            <span aria-hidden="true">·</span>
+            <span>{formatFileSize(model.fileSize)}</span>
+            {model.triangleCount !== undefined && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>{model.triangleCount.toLocaleString('en-US')} tris</span>
+              </>
+            )}
+            {model.hasAnimations && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>animated</span>
+              </>
+            )}
+            <span aria-hidden="true">·</span>
+<span className="normal-case tracking-normal">
+              {model.author ?? 'Unknown author'}
+            </span>
+            <span aria-hidden="true">·</span>
+            <span className="normal-case tracking-normal">
+              {model.license ?? 'License unspecified'}
+            </span>
+            <span aria-hidden="true">·</span>
+            <span className="normal-case tracking-normal">
+              added {formatDate(model.createdAt)}
+            </span>
+          </p>
+
+          <div className="mt-6 flex flex-wrap items-center gap-3">
             <Link to={`/viewer/${model.id}`} className={primaryCtaClass}>
               Open in Studio
               <svg
@@ -330,17 +342,18 @@ export function ModelDetailPage() {
           <p
             role="status"
             aria-live="polite"
-            className="mt-3 text-sm text-accent-soft"
+            className="mt-3 text-sm text-ink-muted"
           >
             {shareStatus ?? ''}
           </p>
         </div>
       </section>
 
+      {/* The viewer is the page: specs sit beside it, never above it. */}
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-5">
           <div className="min-w-0 lg:col-span-3">
-            <div className="relative h-[300px] overflow-hidden rounded-panel border border-line bg-surface shadow-card sm:h-[380px] lg:h-[520px]">
+            <div className="relative h-[300px] overflow-hidden rounded-panel border border-line bg-surface sm:h-[380px] lg:h-[540px]">
               <Suspense
                 fallback={
                   <div className="flex h-full items-center justify-center">
@@ -350,21 +363,26 @@ export function ModelDetailPage() {
               >
                 <ModelViewer modelUrl={model.fileUrl} modelName={model.name} />
               </Suspense>
-              <div className="pointer-events-none absolute left-4 top-4 z-10 rounded-full border border-line bg-bg/70 px-3 py-1 text-xs font-medium uppercase tracking-wider text-ink-muted backdrop-blur">
-                Interactive preview
-              </div>
-              <p className="pointer-events-none absolute right-4 top-4 z-10 hidden rounded-full border border-line bg-bg/70 px-3 py-1 text-xs text-ink-muted backdrop-blur sm:block">
-                Drag to orbit &middot; Scroll to zoom
+              <p className="pointer-events-none absolute right-4 top-4 z-10 hidden rounded-full border border-line bg-bg/70 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-muted backdrop-blur sm:block">
+                Drag to orbit · Scroll to zoom
               </p>
             </div>
+
+            {model.tags.length > 0 && (
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                {model.tags.map((tag) => (
+                  <Badge key={tag}>{tag}</Badge>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="min-w-0 lg:col-span-2">
-            <div className="rounded-panel border border-line bg-surface p-5 shadow-card sm:p-6">
-              <h2 className="font-display text-lg font-semibold text-ink">
+            <div className="rounded-card border border-line bg-surface p-5 sm:p-6">
+              <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-faint">
                 Specifications
               </h2>
-              <dl className="mt-2 divide-y divide-line">
+              <dl className="mt-3 divide-y divide-line">
                 <SpecRow label="Format">{model.format.toUpperCase()}</SpecRow>
                 <SpecRow label="Category">{categoryLabel(model.category)}</SpecRow>
                 <SpecRow label="File size">{formatFileSize(model.fileSize)}</SpecRow>
@@ -391,7 +409,7 @@ export function ModelDetailPage() {
                   <SpecRow label="Tags">
                     <span className="flex flex-wrap justify-end gap-1.5">
                       {model.tags.map((tag) => (
-                        <Badge key={tag} variant="warning">
+                        <Badge key={tag}>
                           {tag}
                         </Badge>
                       ))}
@@ -415,14 +433,14 @@ export function ModelDetailPage() {
                 More from {categoryLabel(model.category)} and other categories
               </p>
             </div>
-            <Link
+<Link
               to={`/?category=${model.category}#gallery`}
-              className="text-sm font-medium text-accent-soft hover:underline"
+              className="shrink-0 rounded-sm text-sm font-medium text-ink-muted underline decoration-line underline-offset-4 transition-colors duration-fast hover:text-ink hover:decoration-ink-faint focus-ring"
             >
               View all {categoryLabel(model.category)}
             </Link>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className={CARD_RELATED_GRID_CLASS}>
             {related.map((m) => (
               <ModelCard key={m.id} model={m} />
             ))}
@@ -432,3 +450,4 @@ export function ModelDetailPage() {
     </div>
   );
 }
+

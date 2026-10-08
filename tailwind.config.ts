@@ -5,23 +5,45 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg: '#0A0A0C',
-        surface: '#131417',
-        elevated: '#1B1D22',
-        line: '#2A2D34',
+        // Semantic tokens (see src/index.css). Channel-based so the existing
+        // `bg-accent/20` / `text-ink/10` / `border-danger/40` opacity modifiers
+        // keep working. Existing token names are preserved so no component has
+        // to change in this stage.
+        bg: 'rgb(var(--canvas-ch) / <alpha-value>)',
+        surface: 'rgb(var(--surface-ch) / <alpha-value>)',
+        elevated: 'rgb(var(--elevated-ch) / <alpha-value>)',
+        interactive: 'rgb(var(--interactive-ch) / <alpha-value>)',
+        overlay: 'var(--overlay-panel)',
+        scrim: 'var(--scrim)',
+        line: 'rgb(var(--border-hairline-ch) / <alpha-value>)',
+        control: 'rgb(var(--border-control-ch) / <alpha-value>)',
+        strong: 'rgb(var(--border-strong-ch) / <alpha-value>)',
         ink: {
-          DEFAULT: '#F4F5F7',
-          muted: '#A3A9B4',
-          faint: '#7B818C',
+          DEFAULT: 'rgb(var(--text-primary-ch) / <alpha-value>)',
+          muted: 'rgb(var(--text-secondary-ch) / <alpha-value>)',
+          faint: 'rgb(var(--text-muted-ch) / <alpha-value>)',
         },
+        'on-accent': 'rgb(var(--text-on-accent-ch) / <alpha-value>)',
         accent: {
-          DEFAULT: '#2563EB',
-          hover: '#1D4ED8',
-          soft: '#60A5FA',
+          DEFAULT: 'rgb(var(--accent-ch) / <alpha-value>)',
+          hover: 'rgb(var(--accent-hover-ch) / <alpha-value>)',
+          muted: 'rgb(var(--accent-muted-ch) / <alpha-value>)',
+          subtle: 'var(--accent-subtle)',
+          // Legacy highlight-text role. Kept as a name so existing
+          // `text-accent-soft` / `bg-accent-soft/10` utilities keep compiling;
+          // it now resolves to the brighter gold used for accent text.
+          soft: 'rgb(var(--accent-hover-ch) / <alpha-value>)',
         },
-        success: '#22C55E',
-        warning: '#F59E0B',
-        danger: '#EF4444',
+        info: 'rgb(var(--info-ch) / <alpha-value>)',
+        success: 'rgb(var(--success-ch) / <alpha-value>)',
+        warning: 'rgb(var(--warning-ch) / <alpha-value>)',
+        danger: 'rgb(var(--error-ch) / <alpha-value>)',
+        focus: 'rgb(var(--focus-ch) / <alpha-value>)',
+        viewer: {
+          bg: 'var(--viewer-bg)',
+          grid: 'var(--viewer-grid)',
+          axis: 'var(--viewer-axis)',
+        },
       },
       fontFamily: {
         sans: ['"Inter Variable"', 'ui-sans-serif', 'system-ui', 'sans-serif'],

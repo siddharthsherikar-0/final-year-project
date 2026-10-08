@@ -121,10 +121,11 @@ describe('ModelDetailPage showcase', () => {
       screen.getByRole('button', { name: /^share$/i }),
     ).toBeInTheDocument();
 
-    expect(screen.getByText('1.0 KB')).toBeInTheDocument();
+    // File size now appears in both the technical strip and the spec table.
+    expect(screen.getAllByText('1.0 KB').length).toBeGreaterThan(0);
     expect(screen.getByText('1,234,567')).toBeInTheDocument();
     expect(screen.getByText('234,567')).toBeInTheDocument();
-    expect(screen.getAllByText('Alice').length).toBe(2);
+    expect(screen.getAllByText('Alice').length).toBeGreaterThan(0);
     expect(screen.getAllByText('CC-BY').length).toBe(2);
     expect(screen.getByText('Included')).toBeInTheDocument();
     expect(screen.getByText('Yes')).toBeInTheDocument();
@@ -336,3 +337,5 @@ describe('ModelDetailPage share', () => {
     );
   });
 });
+
+

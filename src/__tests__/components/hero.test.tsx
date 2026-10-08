@@ -1,144 +1,111 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, getAllByRole } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { Hero } from '@/components/landing/Hero';
-import { LatestUploads } from '@/components/landing/LatestUploads';
 import type { ModelMetadata } from '@/types';
 
-const makeModel = (id: string, createdAt: string): ModelMetadata => ({
+const makeModel = (
+  id: string,
+  overrides: Partial<ModelMetadata> = {},
+): ModelMetadata => ({
   id,
   name: `Model ${id}`,
   description: `Description ${id}`,
   category: 'other',
   format: 'glb',
   fileUrl: `/models/${id}.glb`,
-  thumbnailUrl: `/models/${id}.png`,
+  thumbnailUrl: `/models/${id}-thumb.jpg`,
   fileSize: 1024,
   hasTextures: false,
   hasAnimations: false,
   tags: ['test'],
-  createdAt,
-  updatedAt: createdAt,
+  createdAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2024-01-01T00:00:00Z',
+  ...overrides,
 });
 
+function renderHero(featured: ModelMetadata[] = [], isLoading = false) {
+  return render(
+    <MemoryRouter>
+      <Hero
+        stats={{ total: 6, categories: 3, formats: 2 }}
+        isLoading={isLoading}
+        featured={featured}
+      />
+    </MemoryRouter>,
+  );
+}
+
 describe('Hero', () => {
-  it('renders the headline and sub copy', () => {
-    render(
-      <MemoryRouter>
-        <Hero stats={{ total: 6, categories: 3, formats: 2 }} isLoading={false} />
-      </MemoryRouter>,
-    );
+  it('states the product value proposition, not a generic SaaS pitch', () => {
+    renderHero();
     expect(
-      screen.getByRole('heading', { level: 1, name: /explore 3d models/i }),
+      screen.getByRole('heading', { level: 1, name: /studio for 3d assets/i }),
     ).toBeInTheDocument();
+    expect(screen.getByText(/rendered from the actual glb file/i)).toBeInTheDocument();
     expect(screen.getByText(/webgl viewer/i)).toBeInTheDocument();
   });
 
-  it('links Browse models to the gallery anchor and Upload to /upload', () => {
-    render(
-      <MemoryRouter>
-        <Hero stats={{ total: 0, categories: 0, formats: 0 }} isLoading={false} />
-      </MemoryRouter>,
-    );
-    expect(screen.getByRole('link', { name: /browse models/i })).toHaveAttribute(
-      'href',
-      '#gallery',
-    );
+  it('links Browse to the gallery anchor and Upload to /upload', () => {
+    renderHero();
+    expect(
+      screen.getByRole('link', { name: /browse the gallery/i }),
+    ).toHaveAttribute('href', '#gallery');
     expect(screen.getByRole('link', { name: /upload a model/i })).toHaveAttribute(
       'href',
       '/upload',
     );
   });
 
-  it('shows real library stats once loaded', () => {
-    render(
-      <MemoryRouter>
-        <Hero stats={{ total: 6, categories: 3, formats: 2 }} isLoading={false} />
-      </MemoryRouter>,
-    );
+  it('shows real library stats once loaded, in technical type', () => {
+    const { container } = renderHero();
     expect(screen.getByText('Models')).toBeInTheDocument();
     expect(screen.getByText('6')).toBeInTheDocument();
     expect(screen.getByText('Categories')).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
     expect(screen.getByText('Formats')).toBeInTheDocument();
     expect(screen.getByText('2')).toBeInTheDocument();
+// Numbers are technical facts, so they wear the mono face.
+    const stats = container.querySelector('dl')!;
+    expect(stats.querySelectorAll('.font-mono')).toHaveLength(3);
   });
 
   it('shows skeletons instead of numbers while loading', () => {
-    const { container } = render(
-      <MemoryRouter>
-        <Hero stats={{ total: 0, categories: 0, formats: 0 }} isLoading={true} />
-      </MemoryRouter>,
-    );
-    expect(container.querySelectorAll('.animate-pulse').length).toBe(3);
+    const { container } = renderHero([], true);
+    // Three stat skeletons, plus placeholders for the featured asset tiles.
+    expect(container.querySelectorAll('.animate-pulse').length).toBeGreaterThanOrEqual(3);
     expect(screen.queryByText('0')).not.toBeInTheDocument();
-    // CTAs stay available while loading
-    expect(screen.getByRole('link', { name: /browse models/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /browse the gallery/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('anchors on real model previews instead of abstract decoration', () => {
+    renderHero([
+      makeModel('a', { name: 'Observatory' }),
+      makeModel('b', { name: 'Crane' }),
+    ]);
+    const links = screen
+      .getAllByRole('link')
+      .filter((link) => link.getAttribute('href')?.startsWith('/model/'));
+    expect(links).toHaveLength(2);
+    expect(
+      screen.getByRole('link', { name: 'Observatory — open model' }),
+    ).toBeInTheDocument();
+  });
+
+  it('invites the first upload when the gallery is empty', () => {
+    renderHero([]);
+    expect(
+      screen.getByText(/no models published yet/i),
+    ).toBeInTheDocument();
+  });
+
+  it('keeps decorative gradients out of the backdrop', () => {
+    const { container } = renderHero([makeModel('a')]);
+    const section = container.querySelector('section')!;
+    expect(section.className).not.toMatch(/blur-\[/);
+    expect(section.innerHTML).not.toMatch(/bg-accent\/\d+ blur/);
   });
 });
 
-describe('LatestUploads', () => {
-  it('renders the newest models first, capped at 4', () => {
-    const models = [
-      makeModel('old', '2024-01-01T00:00:00Z'),
-      makeModel('new', '2024-06-01T00:00:00Z'),
-      makeModel('mid', '2024-03-01T00:00:00Z'),
-      makeModel('a', '2024-02-01T00:00:00Z'),
-      makeModel('b', '2024-04-01T00:00:00Z'),
-      makeModel('c', '2024-05-01T00:00:00Z'),
-    ];
-    render(
-      <MemoryRouter>
-        <LatestUploads models={models} isLoading={false} />
-      </MemoryRouter>,
-    );
-    const headings = screen.getAllByRole('heading', { level: 3 });
-    expect(headings).toHaveLength(4);
-    expect(headings[0]).toHaveTextContent('Model new');
-    expect(headings[1]).toHaveTextContent('Model c');
-    expect(headings[2]).toHaveTextContent('Model b');
-    expect(headings[3]).toHaveTextContent('Model mid');
-  });
-
-  it('shows skeleton placeholders while loading', () => {
-    const { container } = render(
-      <MemoryRouter>
-        <LatestUploads models={[]} isLoading={true} />
-      </MemoryRouter>,
-    );
-    expect(container.querySelectorAll('.animate-pulse').length).toBeGreaterThan(0);
-  });
-
-  it('shows an upload call-to-action when there are no models', () => {
-    render(
-      <MemoryRouter>
-        <LatestUploads models={[]} isLoading={false} />
-      </MemoryRouter>,
-    );
-    expect(screen.getByText('No models yet')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /upload a model/i })).toHaveAttribute(
-      'href',
-      '/upload',
-    );
-  });
-
-  it('links each featured card to its detail page', () => {
-    const models = [
-      makeModel('one', '2024-01-01T00:00:00Z'),
-      makeModel('two', '2024-02-01T00:00:00Z'),
-    ];
-    render(
-      <MemoryRouter>
-        <LatestUploads models={models} isLoading={false} />
-      </MemoryRouter>,
-    );
-    const links = getAllByRole(
-      screen.getByRole('region', { name: /latest uploads/i }),
-      'link',
-    );
-    const modelLinks = links.filter((l) =>
-      l.getAttribute('href')?.startsWith('/model/'),
-    );
-    expect(modelLinks).toHaveLength(2);
-  });
-});

@@ -101,14 +101,14 @@ beforeEach(() => {
 describe('HomePage category discovery', () => {
   it('renders category navigation links with deep-link URLs', async () => {
     renderHome();
-    await screen.findByText('Model Gallery');
+    await screen.findByText('Discover 3D assets');
     const link = screen.getByRole('link', { name: 'Architecture, 2 models' });
     expect(link).toHaveAttribute('href', '/?category=architecture#gallery');
   });
 
   it('shows per-category model counts', async () => {
     renderHome();
-    await screen.findByText('Model Gallery');
+    await screen.findByText('Discover 3D assets');
     expect(
       screen.getByRole('link', { name: 'Architecture, 2 models' }),
     ).toBeInTheDocument();
@@ -119,7 +119,7 @@ describe('HomePage category discovery', () => {
 
   it('clicking a category link filters the gallery', async () => {
     renderHome();
-    await screen.findByText('Model Gallery');
+    await screen.findByText('Discover 3D assets');
     fireEvent.click(screen.getByRole('link', { name: 'Architecture, 2 models' }));
     await waitFor(() =>
       expect(useFilterStore.getState().selectedCategories).toEqual([
@@ -134,7 +134,7 @@ describe('HomePage category discovery', () => {
 
   it('applies a category from a deep link', async () => {
     renderHome(['/?category=sci-fi']);
-    await screen.findByText('Model Gallery');
+    await screen.findByText('Discover 3D assets');
     await waitFor(() =>
       expect(useFilterStore.getState().selectedCategories).toEqual(['sci-fi']),
     );
@@ -145,7 +145,7 @@ describe('HomePage category discovery', () => {
 
   it('supports multi-category deep links', async () => {
     renderHome(['/?category=architecture,sci-fi']);
-    await screen.findByText('Model Gallery');
+    await screen.findByText('Discover 3D assets');
     await waitFor(() =>
       expect(useFilterStore.getState().selectedCategories).toEqual([
         'architecture',
@@ -159,7 +159,7 @@ describe('HomePage category discovery', () => {
 
   it('combines search, category, and sort', async () => {
     renderHome();
-    await screen.findByText('Model Gallery');
+    await screen.findByText('Discover 3D assets');
     useFilterStore.setState({ selectedCategories: ['architecture'] });
     useFilterStore.setState({ sortBy: 'date', sortOrder: 'desc' });
     fireEvent.change(screen.getByPlaceholderText(/search models/i), {
@@ -178,7 +178,7 @@ describe('HomePage category discovery', () => {
 
   it('sorts by date descending within a category', async () => {
     renderHome();
-    await screen.findByText('Model Gallery');
+    await screen.findByText('Discover 3D assets');
     useFilterStore.setState({
       selectedCategories: ['architecture'],
       sortBy: 'date',
@@ -195,7 +195,7 @@ describe('HomePage category discovery', () => {
 
   it('lets unauthenticated users browse discovery sections', async () => {
     renderHome();
-    await screen.findByText('Model Gallery');
+    await screen.findByText('Discover 3D assets');
     expect(useAuthStore.getState().isAuthenticated).toBe(false);
     expect(
       screen.getByRole('link', { name: 'Architecture, 2 models' }),
@@ -203,3 +203,4 @@ describe('HomePage category discovery', () => {
     expect(within(galleryElement()).getByText('Alpha House')).toBeInTheDocument();
   });
 });
+
