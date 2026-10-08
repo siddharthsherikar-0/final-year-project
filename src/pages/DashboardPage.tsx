@@ -171,10 +171,10 @@ export function DashboardPage() {
     useFavoriteStore();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
       navigate('/login');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, user, navigate]);
 
   useEffect(() => {
     if (!isAuthenticated) return;

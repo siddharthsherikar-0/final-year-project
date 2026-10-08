@@ -23,7 +23,17 @@ const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api';
 function readStoredUser(): User | null {
   try {
     const raw = localStorage.getItem('user');
-    return raw ? (JSON.parse(raw) as User) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<User> | null;
+    if (
+      !parsed ||
+      typeof parsed.id !== 'string' ||
+      typeof parsed.email !== 'string' ||
+      typeof parsed.name !== 'string'
+    ) {
+      return null;
+    }
+    return parsed as User;
   } catch {
     return null;
   }

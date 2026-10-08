@@ -78,6 +78,20 @@ describe('DashboardPage', () => {
     expect(screen.queryByTestId('dashboard-profile')).toBeNull();
   });
 
+  it('redirects legacy token-only sessions to login instead of rendering blank', () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      token: 'legacy-token',
+      user: null,
+    });
+    renderDashboard();
+
+    expect(screen.getByText('LOGIN_ROUTE')).toBeInTheDocument();
+    expect(screen.queryByTestId('dashboard-profile')).toBeNull();
+    expect(screen.queryByTestId('dashboard-skeleton')).toBeNull();
+    expect(screen.queryByTestId('dashboard-error')).toBeNull();
+  });
+
   it('shows the authenticated identity and real counts from the data layer', async () => {
     (modelRepository.getMine as ReturnType<typeof vi.fn>).mockResolvedValue([
       makeModel('m1', { name: 'Dragon', createdAt: '2024-03-01T00:00:00Z' }),

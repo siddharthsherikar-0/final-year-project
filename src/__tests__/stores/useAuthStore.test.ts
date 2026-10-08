@@ -105,4 +105,15 @@ describe('useAuthStore', () => {
     expect(fresh.getState().isAuthenticated).toBe(true);
     expect(fresh.getState().user).toBeNull();
   });
+
+  it('ignores a stored user with an invalid shape', async () => {
+    localStorage.setItem('token', 'jwt-token');
+    localStorage.setItem('user', JSON.stringify({ foo: 'bar' }));
+
+    vi.resetModules();
+    const { useAuthStore: fresh } = await import('@/stores/useAuthStore');
+
+    expect(fresh.getState().isAuthenticated).toBe(true);
+    expect(fresh.getState().user).toBeNull();
+  });
 });
