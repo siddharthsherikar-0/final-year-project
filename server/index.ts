@@ -30,7 +30,7 @@ app.get('/api/models', async (_req, res) => {
       include: { _count: { select: { favorites: true } } },
     });
     res.json(models);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to fetch models' });
   }
 });
@@ -46,7 +46,7 @@ app.get('/api/models/mine', authMiddleware, async (req: AuthRequest, res) => {
       orderBy: { createdAt: 'desc' },
     });
     res.json(models);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to fetch your models' });
   }
 });
@@ -61,7 +61,7 @@ app.get('/api/models/:id', async (req, res) => {
       return;
     }
     res.json(model);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to fetch model' });
   }
 });

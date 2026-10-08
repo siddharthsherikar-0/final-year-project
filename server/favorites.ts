@@ -13,7 +13,7 @@ router.get('/', async (req: AuthRequest, res) => {
       include: { model: true },
     });
     res.json(favorites.map((f) => f.model));
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to fetch favorites' });
   }
 });
@@ -39,7 +39,7 @@ router.post('/:modelId', async (req: AuthRequest, res) => {
       data: { userId: req.userId!, modelId },
     });
     res.status(201).json(favorite);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to add favorite' });
   }
 });
@@ -57,7 +57,7 @@ router.delete('/:modelId', async (req: AuthRequest, res) => {
 
     await prisma.favorite.delete({ where: { id: existing.id } });
     res.status(204).send();
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to remove favorite' });
   }
 });
@@ -69,7 +69,7 @@ router.get('/check/:modelId', async (req: AuthRequest, res) => {
       where: { userId_modelId: { userId: req.userId!, modelId } },
     });
     res.json({ isFavorited: !!existing });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to check favorite' });
   }
 });

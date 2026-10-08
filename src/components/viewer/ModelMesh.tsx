@@ -16,7 +16,10 @@ export function ModelMesh({ modelUrl, onReady }: ModelMeshProps) {
   const groupRef = useRef<Group>(null);
   const mixerRef = useRef<AnimationMixer | null>(null);
   const onReadyRef = useRef(onReady);
-  onReadyRef.current = onReady;
+
+  useEffect(() => {
+    onReadyRef.current = onReady;
+  }, [onReady]);
 
   const isWireframe = useViewerStore((s) => s.isWireframe);
   const activeClip = useViewerStore((s) => s.activeClip);

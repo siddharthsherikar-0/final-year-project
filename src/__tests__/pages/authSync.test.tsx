@@ -58,7 +58,12 @@ beforeEach(() => {
     isLoading: false,
     isHydratingUser: false,
   });
-  useModelStore.setState({ models: [], isLoading: false, error: null });
+  useModelStore.setState({
+    models: [],
+    isLoading: false,
+    error: null,
+    settledId: null,
+  });
   useFavoriteStore.setState({
     favoriteIds: new Set<string>(),
     isLoading: false,

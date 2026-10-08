@@ -186,7 +186,9 @@ describe('UploadPage', () => {
       FIXTURE_STATS.animations.toLocaleString('en-US'),
     );
     expect(screen.getByTestId('upload-name')).toHaveValue('Dragon');
-    expect(await screen.findByTestId('upload-preview')).toBeInTheDocument();
+    expect(
+      await screen.findByTestId('upload-preview', {}, { timeout: 5000 }),
+    ).toBeInTheDocument();
     expect(screen.getByTestId('upload-submit')).toBeDisabled();
     expect(screen.getByTestId('upload-hint')).toHaveTextContent(
       /add a description/i,
@@ -412,7 +414,9 @@ describe('UploadPage', () => {
   it('releases the preview blob URL when the selected file is removed', async () => {
     renderUpload();
     await selectValidFile();
-    expect(await screen.findByTestId('upload-preview')).toBeInTheDocument();
+    expect(
+      await screen.findByTestId('upload-preview', {}, { timeout: 5000 }),
+    ).toBeInTheDocument();
 
     await act(async () => {
       fireEvent.click(screen.getByTestId('upload-remove-file'));

@@ -1,11 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { UploadDropzone } from '@/components/upload/UploadDropzone';
 import { UploadFileCard } from '@/components/upload/UploadFileCard';
-import { UploadPreview } from '@/components/upload/UploadPreview';
+
+const UploadPreview = lazy(() =>
+  import('@/components/upload/UploadPreview').then((m) => ({
+    default: m.UploadPreview,
+  })),
+);
 import {
   extractModelMetadata,
   MAX_UPLOAD_MB,
@@ -276,7 +281,17 @@ export function UploadPage() {
             />
           )}
 
-          {file && validation === 'valid' && <UploadPreview file={file} />}
+          {file && validation === 'valid' && (
+            <Suspense
+              fallback={
+                <div className="flex justify-center py-4">
+                  <Spinner size="sm" />
+                </div>
+              }
+            >
+              <UploadPreview file={file} />
+            </Suspense>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

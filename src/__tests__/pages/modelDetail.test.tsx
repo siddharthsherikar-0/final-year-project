@@ -60,6 +60,7 @@ beforeEach(() => {
     selectedModel: null,
     isLoading: false,
     error: null,
+    settledId: null,
   });
   useAuthStore.setState({
     user: null,
@@ -83,7 +84,7 @@ afterEach(() => {
 });
 
 describe('ModelDetailPage showcase', () => {
-  it('renders the hero, CTAs, specs, and preview from real metadata', () => {
+  it('renders the hero, CTAs, specs, and preview from real metadata', async () => {
     const model = makeModel('m1', {
       name: 'Cyber Rig',
       description: 'A rigged character.',
@@ -128,7 +129,7 @@ describe('ModelDetailPage showcase', () => {
     expect(screen.getByText('Included')).toBeInTheDocument();
     expect(screen.getByText('Yes')).toBeInTheDocument();
 
-    expect(screen.getByTestId('model-viewer')).toHaveTextContent('Cyber Rig');
+    expect(await screen.findByTestId('model-viewer')).toHaveTextContent('Cyber Rig');
     expect(screen.getByRole('heading', { name: /specifications/i })).toBeInTheDocument();
     expect(modelRepository.getAll).not.toHaveBeenCalled();
   });

@@ -71,6 +71,7 @@ beforeEach(() => {
     selectedModel: null,
     isLoading: false,
     error: null,
+    settledId: null,
   });
   useFilterStore.setState({
     searchQuery: '',
@@ -133,6 +134,7 @@ describe('Discovery flow', () => {
       selectedModel: null,
       isLoading: false,
       error: null,
+      settledId: null,
     });
     renderApp(['/model/m1']);
     expect(await screen.findByText('Open in Studio')).toBeInTheDocument();

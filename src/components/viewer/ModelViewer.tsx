@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Box3 } from 'three';
+import { Box3, type WebGLRenderer } from 'three';
 import { ModelScene } from './ModelScene';
 import { ViewerOverlay } from './ViewerOverlay';
 import { ViewerDock } from './ViewerDock';
@@ -36,7 +36,7 @@ interface ModelViewerProps {
 }
 
 interface CreatedState {
-  gl: { domElement: HTMLCanvasElement };
+  gl: WebGLRenderer;
 }
 
 export function ModelViewer({ modelUrl, modelName, className = '' }: ModelViewerProps) {
@@ -50,6 +50,7 @@ export function ModelViewer({ modelUrl, modelName, className = '' }: ModelViewer
 
   const containerRef = useRef<HTMLDivElement>(null);
   const statusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const glRef = useRef<WebGLRenderer | null>(null);
 
   const viewStats = useViewerStore((s) => s.viewStats);
   const cameraPosition = useViewerStore((s) => s.cameraPosition);
@@ -84,8 +85,21 @@ export function ModelViewer({ modelUrl, modelName, className = '' }: ModelViewer
     [],
   );
 
+  // Force-release the WebGL context when the canvas unmounts so repeated
+  // Detail <-> Viewer navigation cannot accumulate contexts (browsers cap
+  // the live context count and start force-losing the active canvas).
+  useEffect(
+    () => () => {
+      const gl = glRef.current;
+      glRef.current = null;
+      gl?.extensions?.get('WEBGL_lose_context')?.loseContext();
+    },
+    [],
+  );
+
   const handleCreated = useCallback((state: CreatedState) => {
     const canvas = state.gl.domElement;
+    glRef.current = state.gl;
     canvas.addEventListener('webglcontextlost', (event) => {
       event.preventDefault();
       setContextLost(true);
@@ -259,13 +273,21 @@ export function ModelViewer({ modelUrl, modelName, className = '' }: ModelViewer
             <p className="mt-1 text-xs text-ink-muted">
               {error?.message ?? 'Unknown error'}
             </p>
-            <button
-              type="button"
-              onClick={retry}
-              className="mt-3 rounded-md border border-line bg-elevated px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:bg-line focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              Restart viewer
-            </button>
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={retry}
+                className="rounded-md border border-line bg-elevated px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:bg-line focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                Restart viewer
+              </button>
+              <a
+                href="/"
+                className="rounded-md border border-line bg-elevated px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:bg-line focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                Back to Gallery
+              </a>
+            </div>
           </div>
         </div>
       )}

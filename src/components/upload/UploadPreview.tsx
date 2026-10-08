@@ -1,6 +1,9 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useGLTF } from '@react-three/drei';
-import { ModelViewer } from '@/components/viewer/ModelViewer';
+import { Spinner } from '@/components/ui/Spinner';
+import { loadModelViewer } from '@/components/viewer/lazyModelViewer';
+
+const ModelViewer = lazy(loadModelViewer);
 
 interface UploadPreviewProps {
   file: File;
@@ -11,6 +14,11 @@ export function UploadPreview({ file }: UploadPreviewProps) {
 
   useEffect(() => {
     const objectUrl = URL.createObjectURL(file);
+    // Blob URLs are an external resource: create/revoke must pair with the
+    // effect lifecycle (StrictMode-safe) rather than a render-time memo,
+    // which would leak the discarded double-invoked URL. The setState only
+    // publishes that external resource for rendering.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUrl(objectUrl);
     return () => {
       try {
@@ -37,7 +45,15 @@ export function UploadPreview({ file }: UploadPreviewProps) {
         </p>
       </div>
       <div className="h-56 overflow-hidden rounded-md border border-line bg-bg sm:h-72">
-        <ModelViewer modelUrl={url} modelName={file.name} />
+        <Suspense
+          fallback={
+            <div className="flex h-full items-center justify-center">
+              <Spinner size="sm" />
+            </div>
+          }
+        >
+          <ModelViewer modelUrl={url} modelName={file.name} />
+        </Suspense>
       </div>
     </section>
   );

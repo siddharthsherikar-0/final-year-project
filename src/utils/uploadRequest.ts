@@ -40,7 +40,8 @@ export function uploadModel(
       try {
         data = JSON.parse(xhr.responseText) as UploadResponse;
       } catch {
-        data = null;
+        // Non-JSON response body — keep data null so the branch below
+        // reports a status-based error.
       }
       if (xhr.status >= 200 && xhr.status < 300 && data?.id) {
         onProgress(100);

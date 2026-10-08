@@ -79,6 +79,7 @@ beforeEach(() => {
     selectedModel: null,
     isLoading: false,
     error: null,
+    settledId: null,
   });
   useFilterStore.setState({
     searchQuery: '',

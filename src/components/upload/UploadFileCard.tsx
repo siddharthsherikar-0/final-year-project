@@ -58,6 +58,8 @@ function StatRow({ label, testId, value }: StatRowProps) {
   );
 }
 
+const HEAVY_MODEL_TRIANGLES = 500_000;
+
 export function UploadFileCard({
   file,
   stats,
@@ -68,6 +70,7 @@ export function UploadFileCard({
 }: UploadFileCardProps) {
   const status = STATUS[validation];
   const extension = file.name.split('.').pop()?.toUpperCase() ?? 'FILE';
+  const isHeavy = (stats?.triangles ?? 0) >= HEAVY_MODEL_TRIANGLES;
 
   return (
     <section
@@ -127,6 +130,17 @@ export function UploadFileCard({
       {validation === 'invalid' && validationMessage && (
         <p role="alert" className="mt-3 text-sm text-danger">
           {validationMessage}
+        </p>
+      )}
+
+      {isHeavy && (
+        <p
+          role="note"
+          data-testid="upload-heavy-warning"
+          className="mt-3 rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning"
+        >
+          This model is very heavy ({formatStat(stats!.triangles)} triangles). It
+          will upload, but may load slowly on weaker devices.
         </p>
       )}
 

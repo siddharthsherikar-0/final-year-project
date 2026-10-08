@@ -61,7 +61,7 @@ router.post('/register', async (req, res) => {
       token,
       user: { id: user.id, email: user.email, name: user.name },
     });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Registration failed' });
   }
 });
@@ -92,7 +92,7 @@ router.post('/login', async (req, res) => {
       token,
       user: { id: user.id, email: user.email, name: user.name },
     });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Login failed' });
   }
 });
@@ -110,7 +110,7 @@ router.get('/me', authMiddleware, async (req, res) => {
       return;
     }
     res.json({ id: user.id, email: user.email, name: user.name });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: 'Failed to load user' });
   }
 });

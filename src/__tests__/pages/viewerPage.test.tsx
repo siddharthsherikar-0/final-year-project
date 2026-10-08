@@ -60,13 +60,17 @@ beforeEach(() => {
     selectedModel: null,
     isLoading: false,
     error: null,
+    settledId: null,
   });
 });
 
 describe('ViewerPage phases', () => {
-  it('shows a loading phase while the catalog fetches', () => {
+  it('shows a loading phase while the catalog fetches', async () => {
+    let resolveFetch: (value: ModelMetadata[]) => void = () => {};
     (modelRepository.getAll as ReturnType<typeof vi.fn>).mockReturnValue(
-      new Promise(() => {}),
+      new Promise((resolve) => {
+        resolveFetch = resolve;
+      }),
     );
 
     renderViewer('m1');
@@ -79,6 +83,9 @@ describe('ViewerPage phases', () => {
     expect(
       screen.getByRole('link', { name: /back to gallery/i }),
     ).toHaveAttribute('href', '/');
+
+    resolveFetch([makeModel('m1', { name: 'Loaded' })]);
+    await screen.findByTestId('model-viewer');
   });
 
   it('renders the studio once the model is resolved', async () => {

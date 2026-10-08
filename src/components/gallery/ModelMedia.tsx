@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import type { ModelCategory, ModelFormat } from '@/types';
 import { categoryLabel } from '@/config/categories';
@@ -68,13 +68,9 @@ export function ModelMedia({
   format,
   className = '',
 }: ModelMediaProps) {
-  const [imgFailed, setImgFailed] = useState(false);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
 
-  useEffect(() => {
-    setImgFailed(false);
-  }, [thumbnailUrl]);
-
-  const showImage = Boolean(thumbnailUrl) && !imgFailed;
+  const showImage = Boolean(thumbnailUrl) && thumbnailUrl !== failedUrl;
 
   return (
     <div
@@ -86,7 +82,7 @@ export function ModelMedia({
           src={thumbnailUrl}
           alt=""
           loading="lazy"
-          onError={() => setImgFailed(true)}
+          onError={() => setFailedUrl(thumbnailUrl ?? null)}
           className="h-full w-full object-cover"
         />
       ) : (

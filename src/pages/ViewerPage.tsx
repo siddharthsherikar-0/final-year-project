@@ -1,45 +1,51 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useModelStore } from '@/stores/useModelStore';
 import { useRecentStore } from '@/stores/useRecentStore';
-import { ModelViewer } from '@/components/viewer/ModelViewer';
 import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
+import { loadModelViewer } from '@/components/viewer/lazyModelViewer';
+
+const ModelViewer = lazy(loadModelViewer);
 
 type Phase = 'loading' | 'ready' | 'error' | 'not-found';
 
-function phaseFor(id: string | undefined): Phase {
-  const { models, error } = useModelStore.getState();
-  if (models.length === 0 && error) return 'error';
-  if (!models.some((model) => model.id === id)) {
-    return models.length === 0 ? 'loading' : 'not-found';
-  }
-  return 'ready';
-}
-
 export function ViewerPage() {
   const { id } = useParams<{ id: string }>();
-  const { models, fetchModels, selectModel } = useModelStore();
-  const [phase, setPhase] = useState<Phase>(() =>
-    useModelStore.getState().models.some((m) => m.id === id) ? 'ready' : 'loading',
-  );
+  const { models, error, isLoading, fetchModels, selectModel } = useModelStore();
+  const settledId = useModelStore((s) => s.settledId);
 
   useEffect(() => {
-    if (useModelStore.getState().models.some((m) => m.id === id)) {
-      setPhase('ready');
+    if (!id) return;
+    if (useModelStore.getState().models.some((m) => m.id === id)) return;
+    if (useModelStore.getState().settledId === id) {
+      // This id was already fetched once — refresh in the background so a
+      // freshly uploaded model still shows up (previous behavior did this
+      // refetch on every visit as well).
+      void fetchModels();
       return;
     }
     let active = true;
-    setPhase('loading');
     void fetchModels().then(() => {
-      if (active) setPhase(phaseFor(id));
+      if (active) useModelStore.getState().markSettled(id);
     });
     return () => {
       active = false;
     };
   }, [id, fetchModels]);
 
-  const model = phase === 'ready' ? models.find((m) => m.id === id) : undefined;
+  const model = models.find((m) => m.id === id);
+  const settled = Boolean(id) && settledId === id;
+
+  const phase: Phase = model
+    ? 'ready'
+    : !settled || isLoading
+      ? 'loading'
+      : models.length === 0
+        ? error
+          ? 'error'
+          : 'loading'
+        : 'not-found';
 
   useEffect(() => {
     if (model) selectModel(model);
@@ -71,8 +77,7 @@ export function ViewerPage() {
               <Button
                 variant="primary"
                 onClick={() => {
-                  setPhase('loading');
-                  void fetchModels().then(() => setPhase(phaseFor(id)));
+                  void fetchModels();
                 }}
               >
                 Try again
@@ -117,7 +122,15 @@ export function ViewerPage() {
         <span className="w-28 shrink-0" aria-hidden="true" />
       </div>
       <div className="min-h-0 flex-1">
-        <ModelViewer modelUrl={model.fileUrl} modelName={model.name} />
+        <Suspense
+          fallback={
+            <div className="flex h-full items-center justify-center">
+              <Spinner size="lg" />
+            </div>
+          }
+        >
+          <ModelViewer modelUrl={model.fileUrl} modelName={model.name} />
+        </Suspense>
       </div>
     </div>
   );

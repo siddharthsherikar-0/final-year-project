@@ -1,27 +1,22 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useModelStore } from '@/stores/useModelStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useFilterStore } from '@/stores/useFilterStore';
 import { useRecentStore } from '@/stores/useRecentStore';
-import { ModelViewer } from '@/components/viewer/ModelViewer';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { FavoriteButton } from '@/components/gallery/FavoriteButton';
 import { ModelCard } from '@/components/gallery/ModelCard';
+import { loadModelViewer } from '@/components/viewer/lazyModelViewer';
+const ModelViewer = lazy(loadModelViewer);
 import { categoryLabel } from '@/config/categories';
 import { formatFileSize, formatDate } from '@/utils/format';
 import { primaryCtaClass, secondaryCtaClass } from '@/components/landing/Hero';
 
 type Phase = 'loading' | 'ready' | 'error';
-
-function phaseAfterFetch(id: string | undefined): Phase {
-  const { models, error } = useModelStore.getState();
-  if (models.some((model) => model.id === id)) return 'ready';
-  return error ? 'error' : 'ready';
-}
 
 function SpecRow({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -61,29 +56,39 @@ function DetailLoading() {
 
 export function ModelDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { models, error, fetchModels } = useModelStore();
+  const { models, error, isLoading, fetchModels } = useModelStore();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const [phase, setPhase] = useState<Phase>('loading');
+  const settledId = useModelStore((s) => s.settledId);
   const [shareStatus, setShareStatus] = useState<string | null>(null);
   const shareTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const hasRequestedModel = () =>
-      useModelStore.getState().models.some((m) => m.id === id);
-
-    if (hasRequestedModel()) {
-      setPhase('ready');
+    if (!id) return;
+    if (useModelStore.getState().models.some((m) => m.id === id)) return;
+    if (useModelStore.getState().settledId === id) {
+      // Already fetched once — refresh in the background for fresh uploads.
+      void fetchModels();
       return;
     }
     let active = true;
-    setPhase('loading');
     void fetchModels().then(() => {
-      if (active) setPhase(phaseAfterFetch(id));
+      if (active) useModelStore.getState().markSettled(id);
     });
     return () => {
       active = false;
     };
   }, [fetchModels, id]);
+
+  const model = models.find((m) => m.id === id);
+  const settled = Boolean(id) && settledId === id;
+
+  const phase: Phase = model
+    ? 'ready'
+    : !settled || isLoading
+      ? 'loading'
+      : error
+        ? 'error'
+        : 'ready';
 
   useEffect(
     () => () => {
@@ -93,11 +98,8 @@ export function ModelDetailPage() {
   );
 
   const handleRetry = () => {
-    setPhase('loading');
-    void fetchModels().then(() => setPhase(phaseAfterFetch(id)));
+    void fetchModels();
   };
-
-  const model = phase === 'ready' ? models.find((m) => m.id === id) : undefined;
 
   useEffect(() => {
     if (model) useRecentStore.getState().recordView(model.id);
@@ -339,7 +341,15 @@ export function ModelDetailPage() {
         <div className="grid gap-6 lg:grid-cols-5">
           <div className="min-w-0 lg:col-span-3">
             <div className="relative h-[300px] overflow-hidden rounded-panel border border-line bg-surface shadow-card sm:h-[380px] lg:h-[520px]">
-              <ModelViewer modelUrl={model.fileUrl} modelName={model.name} />
+              <Suspense
+                fallback={
+                  <div className="flex h-full items-center justify-center">
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                }
+              >
+                <ModelViewer modelUrl={model.fileUrl} modelName={model.name} />
+              </Suspense>
               <div className="pointer-events-none absolute left-4 top-4 z-10 rounded-full border border-line bg-bg/70 px-3 py-1 text-xs font-medium uppercase tracking-wider text-ink-muted backdrop-blur">
                 Interactive preview
               </div>

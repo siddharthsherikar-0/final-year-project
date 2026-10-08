@@ -81,7 +81,7 @@ router.post(
       });
 
       res.status(201).json(model);
-    } catch (err) {
+    } catch {
       if (req.file) {
         fs.unlinkSync(req.file.path);
       }

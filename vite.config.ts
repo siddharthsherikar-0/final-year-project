@@ -14,14 +14,7 @@ export default defineConfig({
       '/uploads': 'http://localhost:3001',
     },
   },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          three: ['three', '@react-three/fiber', '@react-three/drei'],
-          react: ['react', 'react-dom', 'react-router-dom'],
-        },
-      },
-    },
-  },
+  // No build.manualChunks: with the viewer stack lazy-loaded (ModelViewer and
+  // UploadPreview dynamic imports), Rollup's natural chunking keeps three,
+  // fiber, and drei in async chunks while react stays eager.
 });
