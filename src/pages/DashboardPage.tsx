@@ -153,6 +153,7 @@ const ICON_HEART = (
 export function DashboardPage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
+  const restoreUser = useAuthStore((s) => s.restoreUser);
   const navigate = useNavigate();
 
   const {
@@ -171,10 +172,16 @@ export function DashboardPage() {
     useFavoriteStore();
 
   useEffect(() => {
-    if (!isAuthenticated || !user) {
+    if (!isAuthenticated) {
       navigate('/login');
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    if (isAuthenticated && !user) {
+      void restoreUser();
+    }
+  }, [isAuthenticated, user, restoreUser]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -183,8 +190,12 @@ export function DashboardPage() {
     void fetchFavorites();
   }, [isAuthenticated, fetchMyModels, fetchModels, fetchFavorites]);
 
-  if (!isAuthenticated || !user) {
+  if (!isAuthenticated) {
     return null;
+  }
+
+  if (!user) {
+    return <DashboardSkeleton />;
   }
 
   const isLoading = myLoading || galleryLoading || favLoading;

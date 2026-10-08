@@ -7,6 +7,8 @@ import { useFavoriteStore } from '@/stores/useFavoriteStore';
 
 export function Layout() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
+  const restoreUser = useAuthStore((s) => s.restoreUser);
   const fetchFavorites = useFavoriteStore((s) => s.fetchFavorites);
 
   useEffect(() => {
@@ -14,6 +16,12 @@ export function Layout() {
       void fetchFavorites();
     }
   }, [isAuthenticated, fetchFavorites]);
+
+  useEffect(() => {
+    if (isAuthenticated && !user) {
+      void restoreUser();
+    }
+  }, [isAuthenticated, user, restoreUser]);
 
   return (
     <div className="flex min-h-screen flex-col">

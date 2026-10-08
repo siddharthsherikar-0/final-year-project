@@ -11,10 +11,12 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isHydratingUser: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, name: string, password: string) => Promise<boolean>;
   logout: () => void;
+  restoreUser: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -39,11 +41,12 @@ function readStoredUser(): User | null {
   }
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: readStoredUser(),
   token: localStorage.getItem('token'),
   isAuthenticated: !!localStorage.getItem('token'),
   isLoading: false,
+  isHydratingUser: false,
   error: null,
 
   login: async (email, password) => {
@@ -97,7 +100,54 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    set({ user: null, token: null, isAuthenticated: false });
+    set({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      isHydratingUser: false,
+    });
+  },
+
+  restoreUser: async () => {
+    const { token, user, isHydratingUser } = get();
+    if (!token || user || isHydratingUser) return;
+    set({ isHydratingUser: true });
+    try {
+      const res = await fetch(`${API_BASE}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (get().token !== token) return;
+      if (res.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          error: null,
+          isHydratingUser: false,
+        });
+        return;
+      }
+      if (!res.ok) return;
+      const data = await res.json();
+      if (get().token !== token || get().user) return;
+      if (
+        data &&
+        typeof data === 'object' &&
+        typeof (data as User).id === 'string' &&
+        typeof (data as User).email === 'string' &&
+        typeof (data as User).name === 'string'
+      ) {
+        const hydrated = data as User;
+        localStorage.setItem('user', JSON.stringify(hydrated));
+        set({ user: hydrated, isHydratingUser: false });
+      }
+    } catch {
+      // Network failure keeps the existing token session intact.
+    } finally {
+      set({ isHydratingUser: false });
+    }
   },
 
   clearError: () => set({ error: null }),

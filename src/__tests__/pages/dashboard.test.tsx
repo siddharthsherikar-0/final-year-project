@@ -20,22 +20,30 @@ vi.mock('@/data/modelRepository', () => ({
 
 const fetchMock = vi.fn();
 
-function jsonResponse(data: unknown): Response {
+function jsonResponse(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
-    status: 200,
+    status,
     headers: { 'Content-Type': 'application/json' },
   });
 }
 
-function renderDashboard() {
-  return render(
+function meCalls(fetchFn: typeof fetchMock): unknown[][] {
+  return fetchFn.mock.calls.filter((c) => String(c[0]).includes('/auth/me'));
+}
+
+function dashboardTree() {
+  return (
     <MemoryRouter initialEntries={['/dashboard']}>
       <Routes>
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/login" element={<div>LOGIN_ROUTE</div>} />
       </Routes>
-    </MemoryRouter>,
+    </MemoryRouter>
   );
+}
+
+function renderDashboard() {
+  return render(dashboardTree());
 }
 
 beforeEach(() => {
@@ -48,6 +56,7 @@ beforeEach(() => {
     user: { id: 'u1', email: 'ada@studio.dev', name: 'Ada Lovelace' },
     error: null,
     isLoading: false,
+    isHydratingUser: false,
   });
   useModelStore.setState({ models: [], isLoading: false, error: null });
   useFavoriteStore.setState({
@@ -66,6 +75,7 @@ afterEach(() => {
     user: null,
     error: null,
     isLoading: false,
+    isHydratingUser: false,
   });
 });
 
@@ -78,18 +88,141 @@ describe('DashboardPage', () => {
     expect(screen.queryByTestId('dashboard-profile')).toBeNull();
   });
 
-  it('redirects legacy token-only sessions to login instead of rendering blank', () => {
+  it('renders an existing login session without another login or /me requests', async () => {
+    (modelRepository.getMine as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (modelRepository.getAll as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+
+    renderDashboard();
+
+    expect(await screen.findByTestId('dashboard-name')).toHaveTextContent(
+      'Ada Lovelace',
+    );
+    expect(screen.queryByText('LOGIN_ROUTE')).toBeNull();
+    expect(meCalls(fetchMock)).toHaveLength(0);
+  });
+
+  it('hydrates a legacy token-only session from /me and renders without asking for a login', async () => {
     useAuthStore.setState({
       isAuthenticated: true,
       token: 'legacy-token',
       user: null,
     });
+    (modelRepository.getMine as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (modelRepository.getAll as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    const hydrated = {
+      id: 'u9',
+      email: 'legacy@studio.dev',
+      name: 'Legacy Session',
+    };
+    fetchMock.mockImplementation((url: unknown) =>
+      String(url).includes('/auth/me')
+        ? Promise.resolve(jsonResponse(hydrated))
+        : Promise.resolve(jsonResponse([])),
+    );
+
     renderDashboard();
 
-    expect(screen.getByText('LOGIN_ROUTE')).toBeInTheDocument();
+    expect(screen.queryByText('LOGIN_ROUTE')).toBeNull();
+    expect(await screen.findByTestId('dashboard-name')).toHaveTextContent(
+      'Legacy Session',
+    );
+    expect(screen.getByTestId('dashboard-email')).toHaveTextContent(
+      'legacy@studio.dev',
+    );
+    expect(localStorage.getItem('user')).toBe(JSON.stringify(hydrated));
+    expect(meCalls(fetchMock)).toHaveLength(1);
+  });
+
+  it('shows the existing skeleton while user metadata is being hydrated', async () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      token: 'legacy-token',
+      user: null,
+    });
+    (modelRepository.getMine as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (modelRepository.getAll as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    let releaseMe!: (response: Response) => void;
+    fetchMock.mockImplementation((url: unknown) => {
+      if (String(url).includes('/auth/me')) {
+        return new Promise<Response>((resolve) => {
+          releaseMe = resolve;
+        });
+      }
+      return Promise.resolve(jsonResponse([]));
+    });
+
+    renderDashboard();
+
+    expect(screen.getByTestId('dashboard-skeleton')).toBeInTheDocument();
     expect(screen.queryByTestId('dashboard-profile')).toBeNull();
-    expect(screen.queryByTestId('dashboard-skeleton')).toBeNull();
-    expect(screen.queryByTestId('dashboard-error')).toBeNull();
+    expect(screen.queryByText('LOGIN_ROUTE')).toBeNull();
+
+    releaseMe(
+      jsonResponse({
+        id: 'u9',
+        email: 'legacy@studio.dev',
+        name: 'Legacy Session',
+      }),
+    );
+
+    expect(await screen.findByTestId('dashboard-name')).toHaveTextContent(
+      'Legacy Session',
+    );
+  });
+
+  it('clears the session and redirects to login when /me returns 401', async () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      token: 'expired-token',
+      user: null,
+    });
+    (modelRepository.getMine as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (modelRepository.getAll as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    fetchMock.mockImplementation((url: unknown) =>
+      String(url).includes('/auth/me')
+        ? Promise.resolve(jsonResponse({ error: 'Unauthorized' }, 401))
+        : Promise.resolve(jsonResponse([])),
+    );
+
+    renderDashboard();
+
+    expect(await screen.findByText('LOGIN_ROUTE')).toBeInTheDocument();
+    expect(screen.queryByTestId('dashboard-profile')).toBeNull();
+    expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    expect(useAuthStore.getState().token).toBeNull();
+    expect(localStorage.getItem('token')).toBeNull();
+    expect(localStorage.getItem('user')).toBeNull();
+  });
+
+  it('does not request /me repeatedly across re-renders of the same session', async () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      token: 'legacy-token',
+      user: null,
+    });
+    (modelRepository.getMine as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (modelRepository.getAll as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    fetchMock.mockImplementation((url: unknown) =>
+      String(url).includes('/auth/me')
+        ? Promise.resolve(
+            jsonResponse({
+              id: 'u9',
+              email: 'legacy@studio.dev',
+              name: 'Legacy Session',
+            }),
+          )
+        : Promise.resolve(jsonResponse([])),
+    );
+
+    const { rerender } = renderDashboard();
+    expect(await screen.findByTestId('dashboard-name')).toHaveTextContent(
+      'Legacy Session',
+    );
+
+    rerender(dashboardTree());
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(meCalls(fetchMock)).toHaveLength(1);
   });
 
   it('shows the authenticated identity and real counts from the data layer', async () => {

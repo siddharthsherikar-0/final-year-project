@@ -97,5 +97,23 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.get('/me', authMiddleware, async (req, res) => {
+  try {
+    const { userId } = req as AuthRequest;
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    res.json({ id: user.id, email: user.email, name: user.name });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load user' });
+  }
+});
+
 export { router as authRouter, authMiddleware };
 export type { AuthRequest };
