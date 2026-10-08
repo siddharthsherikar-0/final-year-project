@@ -27,6 +27,7 @@ export interface ModelMetadata {
   license?: string;
   createdAt: string;
   updatedAt: string;
+  favoriteCount?: number;
 }
 
 export interface ModelFilter {

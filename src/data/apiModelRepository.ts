@@ -20,6 +20,7 @@ interface ApiModelRecord {
   license: string | null;
   createdAt: string;
   updatedAt: string;
+  _count?: { favorites: number };
 }
 
 function recordToMetadata(record: ApiModelRecord): ModelMetadata {
@@ -41,6 +42,7 @@ function recordToMetadata(record: ApiModelRecord): ModelMetadata {
     license: record.license ?? undefined,
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
+    favoriteCount: record._count?.favorites,
   };
 }
 

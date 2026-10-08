@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import type { ModelMetadata } from '@/types';
 import { useFilterStore } from '@/stores/useFilterStore';
 import { ModelGrid } from './ModelGrid';
@@ -7,9 +7,18 @@ import { GallerySkeleton } from './GallerySkeleton';
 interface ModelGalleryProps {
   models: ModelMetadata[];
   isLoading: boolean;
+  emptyTitle?: string;
+  emptyDescription?: string;
+  emptyAction?: ReactNode;
 }
 
-export function ModelGallery({ models, isLoading }: ModelGalleryProps) {
+export function ModelGallery({
+  models,
+  isLoading,
+  emptyTitle,
+  emptyDescription,
+  emptyAction,
+}: ModelGalleryProps) {
   const sortBy = useFilterStore((s) => s.sortBy);
   const sortOrder = useFilterStore((s) => s.sortOrder);
 
@@ -31,5 +40,12 @@ export function ModelGallery({ models, isLoading }: ModelGalleryProps) {
     return <GallerySkeleton />;
   }
 
-  return <ModelGrid models={sortedModels} />;
+  return (
+    <ModelGrid
+      models={sortedModels}
+      emptyTitle={emptyTitle}
+      emptyDescription={emptyDescription}
+      emptyAction={emptyAction}
+    />
+  );
 }

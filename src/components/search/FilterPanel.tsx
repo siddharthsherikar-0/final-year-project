@@ -1,4 +1,5 @@
 import { useFilterStore } from '@/stores/useFilterStore';
+import { useModelStore } from '@/stores/useModelStore';
 import { CATEGORIES, FORMATS } from '@/config/categories';
 
 const chipBase =
@@ -14,6 +15,7 @@ export function FilterPanel() {
   const toggleCategory = useFilterStore((s) => s.toggleCategory);
   const toggleFormat = useFilterStore((s) => s.toggleFormat);
   const reset = useFilterStore((s) => s.reset);
+  const models = useModelStore((s) => s.models);
 
   const hasActiveFilters =
     selectedCategories.length > 0 || selectedFormats.length > 0;
@@ -27,6 +29,7 @@ export function FilterPanel() {
         <div className="flex flex-wrap gap-2" role="group" aria-label="Category filters">
           {CATEGORIES.map((cat) => {
             const selected = selectedCategories.includes(cat.value);
+            const count = models.filter((m) => m.category === cat.value).length;
             return (
               <button
                 key={cat.value}
@@ -35,7 +38,12 @@ export function FilterPanel() {
                 aria-pressed={selected}
                 className={`${chipBase} ${selected ? chipSelected : chipIdle}`}
               >
-                {cat.label}
+                <span>{cat.label}</span>
+                {models.length > 0 && (
+                  <span aria-hidden="true" className="ml-1 tabular-nums opacity-70">
+                    {count}
+                  </span>
+                )}
               </button>
             );
           })}

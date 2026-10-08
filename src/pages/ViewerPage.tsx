@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useModelStore } from '@/stores/useModelStore';
+import { useRecentStore } from '@/stores/useRecentStore';
 import { ModelViewer } from '@/components/viewer/ModelViewer';
 import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
@@ -43,6 +44,10 @@ export function ViewerPage() {
   useEffect(() => {
     if (model) selectModel(model);
   }, [model, selectModel]);
+
+  useEffect(() => {
+    if (model) useRecentStore.getState().recordView(model.id);
+  }, [model]);
 
   if (phase === 'loading' || phase === 'error') {
     return (

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useModelStore } from '@/stores/useModelStore';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useFilterStore } from '@/stores/useFilterStore';
+import { useRecentStore } from '@/stores/useRecentStore';
 import { ModelViewer } from '@/components/viewer/ModelViewer';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -97,6 +99,16 @@ export function ModelDetailPage() {
 
   const model = phase === 'ready' ? models.find((m) => m.id === id) : undefined;
 
+  useEffect(() => {
+    if (model) useRecentStore.getState().recordView(model.id);
+  }, [model]);
+
+  const selectedCategories = useFilterStore((s) => s.selectedCategories);
+  const galleryTo =
+    selectedCategories.length > 0
+      ? `/?category=${selectedCategories.join(',')}#gallery`
+      : '/';
+
   const related = useMemo(() => {
     if (!model) return [];
     const others = models.filter((m) => m.id !== model.id);
@@ -186,17 +198,34 @@ export function ModelDetailPage() {
 
         <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
           <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-sm">
-            <Link to="/" className="text-accent-soft hover:underline">
+            <Link to={galleryTo} className="text-accent-soft hover:underline">
               Gallery
             </Link>
             <span aria-hidden="true" className="text-ink-faint">
               /
             </span>
-            <span className="text-ink-faint">{categoryLabel(model.category)}</span>
+            <Link
+              to={`/?category=${model.category}#gallery`}
+              className="text-accent-soft hover:underline"
+            >
+              {categoryLabel(model.category)}
+            </Link>
+            <span aria-hidden="true" className="text-ink-faint">
+              /
+            </span>
+            <span className="text-ink-faint" aria-current="page">
+              {model.name}
+            </span>
           </nav>
 
           <div className="mt-5 flex flex-wrap items-center gap-2">
-            <Badge variant="success">{categoryLabel(model.category)}</Badge>
+            <Link
+              to={`/?category=${model.category}#gallery`}
+              aria-label={`Browse ${categoryLabel(model.category)} models`}
+              className="rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+            >
+              <Badge variant="success">{categoryLabel(model.category)}</Badge>
+            </Link>
             <Badge>{model.format.toUpperCase()}</Badge>
             {model.tags.map((tag) => (
               <Badge key={tag} variant="warning">
@@ -377,10 +406,10 @@ export function ModelDetailPage() {
               </p>
             </div>
             <Link
-              to="/#gallery"
+              to={`/?category=${model.category}#gallery`}
               className="text-sm font-medium text-accent-soft hover:underline"
             >
-              View all models
+              View all {categoryLabel(model.category)}
             </Link>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

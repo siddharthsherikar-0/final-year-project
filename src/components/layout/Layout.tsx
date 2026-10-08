@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -10,6 +10,7 @@ export function Layout() {
   const user = useAuthStore((s) => s.user);
   const restoreUser = useAuthStore((s) => s.restoreUser);
   const fetchFavorites = useFavoriteStore((s) => s.fetchFavorites);
+  const location = useLocation();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -22,6 +23,12 @@ export function Layout() {
       void restoreUser();
     }
   }, [isAuthenticated, user, restoreUser]);
+
+  useEffect(() => {
+    if (!location.hash) return;
+    const target = document.getElementById(location.hash.slice(1));
+    if (target) target.scrollIntoView();
+  }, [location.hash, location.pathname]);
 
   return (
     <div className="flex min-h-screen flex-col">

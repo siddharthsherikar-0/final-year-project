@@ -27,6 +27,7 @@ app.get('/api/models', async (_req, res) => {
   try {
     const models = await prisma.model.findMany({
       orderBy: { createdAt: 'asc' },
+      include: { _count: { select: { favorites: true } } },
     });
     res.json(models);
   } catch (err) {
