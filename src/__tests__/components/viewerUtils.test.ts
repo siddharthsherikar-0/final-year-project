@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { Box3, Vector3 } from 'three';
+import { Box3, PerspectiveCamera, Vector3 } from 'three';
+import type { CameraPose } from '@/stores/useViewerStore';
 import {
   ENVIRONMENT_PRESETS,
   SHORTCUTS,
@@ -53,6 +54,58 @@ describe('framePose', () => {
   it('returns null for an empty box', () => {
     const box = new Box3(new Vector3(0, 0, 0), new Vector3(0, 0, 0));
     expect(framePose(box, 45, 1)).toBeNull();
+  });
+
+  // Regression: framing solved only the vertical axis against depth, which
+  // clipped tall and diagonal assets out of the viewport (Cesium Man's head
+  // was cut off at the top of the Studio viewport).
+  const projectsInsideFrustum = (
+    box: Box3,
+    pose: CameraPose,
+    fov: number,
+    aspect: number,
+  ) => {
+    const camera = new PerspectiveCamera(fov, aspect, 0.1, 1000);
+    camera.position.set(...pose.position);
+    camera.lookAt(new Vector3(...pose.target));
+    camera.updateMatrixWorld(true);
+    camera.updateProjectionMatrix();
+    const projected = new Vector3();
+    let inside = true;
+    for (const x of [box.min.x, box.max.x]) {
+      for (const y of [box.min.y, box.max.y]) {
+        for (const z of [box.min.z, box.max.z]) {
+          projected.set(x, y, z).project(camera);
+          if (
+            Math.abs(projected.x) > 1 ||
+            Math.abs(projected.y) > 1 ||
+            projected.z > 1 ||
+            projected.z < -1
+          ) {
+            inside = false;
+          }
+        }
+      }
+    }
+    return inside;
+  };
+
+  it('keeps every corner of a tall thin asset inside the frustum', () => {
+    const box = new Box3(new Vector3(-0.1, -0.9, -0.1), new Vector3(0.1, 0.9, 0.1));
+    expect(projectsInsideFrustum(box, framePose(box, 45, 1.6)!, 45, 1.6)).toBe(true);
+  });
+
+  it('keeps every corner of a Z-up diagonal asset inside the frustum', () => {
+    // Bind-pose extents of the Cesium Man skeleton, the shape that regressed.
+    const box = new Box3(new Vector3(-0.04, -0.45, -0.58), new Vector3(0.04, 0.45, 0.58));
+    expect(projectsInsideFrustum(box, framePose(box, 45, 1.6)!, 45, 1.6)).toBe(true);
+  });
+
+  it('keeps every corner inside the frustum across viewport aspects', () => {
+    for (const aspect of [0.5, 1, 1.6, 3]) {
+      const box = new Box3(new Vector3(-0.31, -0.57, -0.75), new Vector3(0.31, 0.57, 0.75));
+      expect(projectsInsideFrustum(box, framePose(box, 45, aspect)!, 45, aspect)).toBe(true);
+    }
   });
 });
 

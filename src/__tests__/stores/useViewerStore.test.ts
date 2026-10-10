@@ -130,4 +130,99 @@ describe('useViewerStore', () => {
       calls: 12,
     });
   });
+
+  it('toggles the inspection panel from the store', () => {
+    expect(useViewerStore.getState().panelOpen).toBe(false);
+    useViewerStore.getState().togglePanel();
+    expect(useViewerStore.getState().panelOpen).toBe(true);
+    useViewerStore.getState().setPanelOpen(false);
+    expect(useViewerStore.getState().panelOpen).toBe(false);
+  });
+
+  it('stores scene inspection data and clears it', () => {
+    useViewerStore.getState().setSceneInspection({
+      meshCount: 3,
+      skinnedMeshCount: 0,
+      materialCount: 2,
+      triangleCount: 1200,
+      dimensions: [1, 2, 3],
+      largestAxis: 'z',
+      objectNames: ['Hull'],
+      namedObjectCount: 1,
+      materials: [],
+      animationNames: [],
+      hasMorphTargets: false,
+      textureCount: 1,
+    });
+    expect(useViewerStore.getState().sceneInspection?.meshCount).toBe(3);
+    useViewerStore.getState().setSceneInspection(null);
+    expect(useViewerStore.getState().sceneInspection).toBeNull();
+  });
+
+  it('resets every studio-scoped slice to its default', () => {
+    const store = useViewerStore.getState();
+    store.setCameraPose({ position: [9, 9, 9], target: [1, 1, 1] });
+    store.setEnvironment('sunset');
+    store.toggleWireframe();
+    store.toggleAxes();
+    store.toggleAutoRotate();
+    store.togglePanel();
+    store.setAnimationClips(['Walk']);
+    store.setViewStats({ triangles: 1, calls: 1 });
+    store.setSceneInspection({ meshCount: 1 } as never);
+
+    useViewerStore.getState().resetStudioState();
+
+    const state = useViewerStore.getState();
+    expect(state.cameraPosition).toEqual([0, 1, 5]);
+    expect(state.controlsTarget).toEqual([0, 0, 0]);
+    expect(state.environment).toBe('studio');
+    expect(state.isWireframe).toBe(false);
+    expect(state.showAxes).toBe(false);
+    expect(state.autoRotate).toBe(false);
+    expect(state.panelOpen).toBe(false);
+    expect(state.animationClips).toEqual([]);
+    expect(state.viewStats).toBeNull();
+    expect(state.sceneInspection).toBeNull();
+  });
+
+  it('resets studio state when switching models and keeps it when revisiting', () => {
+    const store = useViewerStore.getState();
+    store.setEnvironment('midnight');
+    store.toggleWireframe();
+    store.togglePanel();
+    store.setAnimationClips(['Walk']);
+
+    // First visit to a model: the previous model's state is discarded and the
+    // owner is recorded.
+    useViewerStore.getState().ensureStudioFor('model-a');
+    expect(useViewerStore.getState().studioModelId).toBe('model-a');
+    expect(useViewerStore.getState().environment).toBe('studio');
+
+    // Dirty the studio, then revisit the same model: state survives, because
+    // reopening an asset should not silently move the camera.
+    const store2 = useViewerStore.getState();
+    store2.setEnvironment('midnight');
+    store2.toggleWireframe();
+    store2.togglePanel();
+    useViewerStore.getState().ensureStudioFor('model-a');
+    expect(useViewerStore.getState().environment).toBe('midnight');
+    expect(useViewerStore.getState().isWireframe).toBe(true);
+    expect(useViewerStore.getState().panelOpen).toBe(true);
+    expect(useViewerStore.getState().studioModelId).toBe('model-a');
+
+    // Different model: everything resets and the owner is recorded.
+    useViewerStore.getState().ensureStudioFor('model-b');
+    const state = useViewerStore.getState();
+    expect(state.environment).toBe('studio');
+    expect(state.isWireframe).toBe(false);
+    expect(state.panelOpen).toBe(false);
+    expect(state.animationClips).toEqual([]);
+    expect(state.studioModelId).toBe('model-b');
+
+    // Revisiting the first model resets again rather than restoring stale state.
+    useViewerStore.getState().ensureStudioFor('model-a');
+    expect(useViewerStore.getState().studioModelId).toBe('model-a');
+    expect(useViewerStore.getState().environment).toBe('studio');
+  });
 });

@@ -8,6 +8,9 @@ interface IconButtonProps {
   disabled?: boolean;
   onClick: () => void;
   children: React.ReactNode;
+  /** Lets a toggle button also expose aria-expanded (e.g. the panel opener). */
+  expanded?: boolean;
+  buttonRef?: React.Ref<HTMLButtonElement>;
 }
 
 const IDLE_CLASS =
@@ -22,6 +25,8 @@ function IconButton({
   disabled = false,
   onClick,
   children,
+  expanded,
+  buttonRef,
 }: IconButtonProps) {
   // The tooltip keeps the existing CSS reveal (hover + focus-visible) and is
   // now exposed to assistive tech: role="tooltip" plus aria-describedby on the
@@ -30,10 +35,12 @@ function IconButton({
 
   return (
     <button
+      ref={buttonRef}
       type="button"
       aria-label={label}
       aria-describedby={tooltipId}
       aria-pressed={active}
+      aria-expanded={expanded}
       disabled={disabled}
       onClick={onClick}
       className={`group relative inline-flex h-9 w-9 items-center justify-center rounded-md border border-control transition-[background-color,border-color,color,transform] duration-fast active:translate-y-px after:absolute after:-inset-y-2 after:-inset-x-1 after:content-[''] focus-ring-tight disabled:cursor-not-allowed disabled:opacity-40 motion-reduce:transition-none ${
@@ -186,6 +193,8 @@ interface ViewerDockProps {
   fullscreenAvailable: boolean;
   helpOpen: boolean;
   panelOpen: boolean;
+  /** So the owner can restore focus to the panel trigger on close. */
+  panelButtonRef?: React.Ref<HTMLButtonElement>;
 }
 
 export function ViewerDock({
@@ -200,6 +209,7 @@ export function ViewerDock({
   fullscreenAvailable,
   helpOpen,
   panelOpen,
+  panelButtonRef,
 }: ViewerDockProps) {
   const isWireframe = useViewerStore((s) => s.isWireframe);
   const autoRotate = useViewerStore((s) => s.autoRotate);
@@ -225,7 +235,9 @@ export function ViewerDock({
     <div
       role="toolbar"
       aria-label="Viewer controls"
-      className="pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-1.5 rounded-panel border border-line bg-overlay-panel/90 p-1.5 shadow-lift backdrop-blur"
+className="pointer-events-auto flex max-w-full items-center
+        justify-center gap-1.5 rounded-panel border border-line bg-overlay-panel/90 p-1.5 shadow-lift backdrop-blur
+        max-lg:justify-start max-lg:overflow-x-auto"
     >
       <IconButton label="Reset camera" shortcut="R" onClick={onReset}>
         {ICONS.reset}
@@ -298,10 +310,14 @@ export function ViewerDock({
       <IconButton
         label="Studio panel"
         active={panelOpen}
+        expanded={panelOpen}
         onClick={onTogglePanel}
+        buttonRef={panelButtonRef}
       >
         {ICONS.panel}
       </IconButton>
     </div>
   );
 }
+
+

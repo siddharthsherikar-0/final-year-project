@@ -2,11 +2,16 @@ import { Environment, Grid, Lightformer, OrbitControls, PerformanceMonitor } fro
 import { Suspense, useCallback, useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import type { PerspectiveCamera } from 'three';
+
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { ModelMesh } from './ModelMesh';
 import { useViewerStore } from '@/stores/useViewerStore';
 import { ENVIRONMENT_PRESETS } from './viewerUtils';
 import { viewerRuntime, resetViewerRuntime } from './viewerRuntime';
+import { setEditorControls } from '@/editor/editorRuntime';
+
+/** Disables raycasting on a helper object so it never becomes a scene hit. */
+const noRaycast = () => undefined;
 
 function RuntimeBridge() {
   const gl = useThree((s) => s.gl);
@@ -70,6 +75,8 @@ interface ModelSceneProps {
   onReady?: () => void;
   onPerfDecline?: () => void;
   onPerfIncline?: () => void;
+  /** Stage 9B: enables viewport picking in the editor layout. */
+  selectable?: boolean;
 }
 
 export function ModelScene({
@@ -77,6 +84,7 @@ export function ModelScene({
   onReady,
   onPerfDecline,
   onPerfIncline,
+  selectable = false,
 }: ModelSceneProps) {
   const showGrid = useViewerStore((s) => s.showGrid);
   const showAxes = useViewerStore((s) => s.showAxes);
@@ -89,7 +97,9 @@ export function ModelScene({
   const setControls = useCallback((controls: OrbitControlsImpl | null) => {
     controlsRef.current = controls;
     viewerRuntime.controls = controls;
-  }, []);
+    // Read-only placement reference for newly created objects.
+    setEditorControls(selectable ? controls : null);
+  }, [selectable]);
 
   return (
     <>
@@ -117,12 +127,16 @@ export function ModelScene({
       </Environment>
 
       <Suspense fallback={null}>
-        <ModelMesh modelUrl={modelUrl} onReady={onReady} />
+        <ModelMesh modelUrl={modelUrl} onReady={onReady} selectable={selectable} />
       </Suspense>
 
+      {/* In the editor the ground grid and axes must not be pickable: a click
+          on them would otherwise count as a scene hit and block the
+          "click empty space to deselect" behaviour. */}
       {showGrid && (
         <Grid
           args={[10, 10]}
+          raycast={selectable ? noRaycast : undefined}
           cellSize={0.5}
           cellThickness={0.5}
           cellColor="#6b7280"
@@ -136,7 +150,13 @@ export function ModelScene({
         />
       )}
 
-      {showAxes && <axesHelper args={[1.5]} position={[0, 0.002, 0]} />}
+      {showAxes && (
+        <axesHelper
+          args={[1.5]}
+          position={[0, 0.002, 0]}
+          raycast={selectable ? noRaycast : undefined}
+        />
+      )}
 
       <OrbitControls
         ref={setControls}
@@ -160,3 +180,6 @@ export function ModelScene({
     </>
   );
 }
+
+
+

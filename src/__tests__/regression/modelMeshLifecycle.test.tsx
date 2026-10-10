@@ -116,6 +116,7 @@ import { useGLTF } from '@react-three/drei';
 import { useModelLoader } from '@/hooks/useModelLoader';
 import { ModelMesh } from '@/components/viewer/ModelMesh';
 import { viewerRuntime } from '@/components/viewer/viewerRuntime';
+import { getEditorWorkingScene, setEditorWorkingScene } from '@/editor/editorRuntime';
 import { useViewerStore } from '@/stores/useViewerStore';
 
 function makeSourceScene(): { source: Group; material: MeshBasicMaterial } {
@@ -139,10 +140,12 @@ beforeEach(() => {
     isPlaying: false,
   });
   viewerRuntime.modelRoot = null;
+  setEditorWorkingScene(null);
 });
 
 afterEach(() => {
   viewerRuntime.modelRoot = null;
+  setEditorWorkingScene(null);
 });
 
 describe('Phase I model loading and mesh lifecycle regressions', () => {
@@ -207,7 +210,22 @@ describe('Phase I model loading and mesh lifecycle regressions', () => {
     act(() => {
       useViewerStore.setState({ isWireframe: true });
     });
-    expect(material.wireframe).toBe(true);
+
+    // Stage 9B: wireframe is applied to the editor-owned working material only.
+    // Before the ownership layer this assertion read the CACHED material,
+    // which is precisely the shared-state defect the audit confirmed.
+    const workingScene = getEditorWorkingScene();
+    expect(workingScene).not.toBeNull();
+    const workingMeshes: Mesh[] = [];
+    workingScene!.root.traverse((child) => {
+      if ((child as Mesh).isMesh) workingMeshes.push(child as Mesh);
+    });
+    expect(workingMeshes).toHaveLength(1);
+    expect(
+      (workingMeshes[0]!.material as MeshBasicMaterial).wireframe,
+    ).toBe(true);
+    // The cached source material must never be touched.
+    expect(material.wireframe).toBe(false);
 
     stopAllSpy.mockClear();
     unmount();

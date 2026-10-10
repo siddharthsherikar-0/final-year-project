@@ -63,12 +63,42 @@ export function framePose(
     return null;
   }
 
-  const maxSize = Math.max(size.x, size.y, size.z);
-  const fitHeightDistance = maxSize / (2 * Math.tan((fov * Math.PI) / 360));
-  const fitWidthDistance = fitHeightDistance / Math.max(aspect, 0.0001);
-  const distance = padding * Math.max(fitHeightDistance, fitWidthDistance);
-
+  // Distance is solved against all eight box corners so the whole asset fits
+  // the frustum at this angle: a single-axis estimate clipped tall models
+  // (head out of frame), and a diagonal estimate over-distanced them.
   const direction = new Vector3(1, 0.5, 1).normalize();
+  const forward = direction.clone().negate();
+  const right = new Vector3().crossVectors(forward, new Vector3(0, 1, 0));
+  if (right.lengthSq() < 1e-8) right.set(1, 0, 0);
+  right.normalize();
+  const up = new Vector3().crossVectors(right, forward).normalize();
+
+  const tanV = Math.tan((fov * Math.PI) / 360);
+  const tanH = tanV * Math.max(aspect, 0.0001);
+
+  const min = box.min;
+  const max = box.max;
+  let required = 0;
+  for (const x of [min.x, max.x]) {
+    for (const y of [min.y, max.y]) {
+      for (const z of [min.z, max.z]) {
+const offset = new Vector3(x, y, z).sub(center);
+        // A corner is in view when its lateral offsets stay inside the frustum
+        // at its own depth: |lateral| <= tan * (d + offset . forward), so each
+        // corner sets a lower bound on d of |lateral| / tan - offset . forward.
+        const depth = offset.dot(forward);
+        const lateralX = Math.abs(offset.dot(right));
+        const lateralY = Math.abs(offset.dot(up));
+        required = Math.max(
+          required,
+          lateralX / tanH - depth,
+          lateralY / tanV - depth,
+        );
+      }
+    }
+  }
+
+  const distance = padding * required;
   const position = center.clone().add(direction.multiplyScalar(distance));
 
   return {
@@ -213,3 +243,4 @@ export function shortcutAction(event: {
   if (event.shiftKey && event.key.toLowerCase() === 'f') return 'fullscreen';
   return KEY_ACTIONS[event.key.toLowerCase()] ?? null;
 }
+

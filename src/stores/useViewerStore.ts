@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { SceneInspection } from '@/utils/sceneInspection';
 
 export type EnvironmentPreset = 'studio' | 'midnight' | 'sunset';
 
@@ -25,6 +26,13 @@ interface ViewerState {
   activeClip: number;
   isPlaying: boolean;
   viewStats: { triangles: number; calls: number } | null;
+  /** Inspection panel visibility. Shared so the dock, the toolbar and the
+   *  panel itself can never disagree about whether it is open. */
+  panelOpen: boolean;
+  /** Serializable description of the loaded scene (null until it is ready). */
+  sceneInspection: SceneInspection | null;
+  /** Which model the studio state currently belongs to. */
+  studioModelId: string | null;
   setCameraPosition: (pos: [number, number, number]) => void;
   setCameraPose: (pose: CameraPose) => void;
   resetCamera: () => void;
@@ -41,6 +49,21 @@ interface ViewerState {
   setActiveClip: (index: number) => void;
   togglePlaying: () => void;
   setViewStats: (stats: { triangles: number; calls: number }) => void;
+  setPanelOpen: (open: boolean) => void;
+  togglePanel: () => void;
+  setSceneInspection: (inspection: SceneInspection | null) => void;
+  /**
+   * Returns every studio-scoped slice to its default so one model's camera,
+   * view toggles, environment and panel state cannot leak into the next model.
+   */
+  resetStudioState: () => void;
+  /**
+   * Resets the studio state when it belongs to a different model. Safe to call
+   * on every visit: revisiting the same model keeps its state (opening the
+   * same asset again should not silently move the camera), while switching to
+   * another model always starts clean.
+   */
+  ensureStudioFor: (modelId: string) => void;
 }
 
 export const useViewerStore = create<ViewerState>((set, get) => ({
@@ -57,6 +80,9 @@ export const useViewerStore = create<ViewerState>((set, get) => ({
   activeClip: 0,
   isPlaying: false,
   viewStats: null,
+    panelOpen: false,
+  sceneInspection: null,
+  studioModelId: null,
 
   setCameraPosition: (pos) => set({ cameraPosition: pos }),
 
@@ -102,4 +128,51 @@ export const useViewerStore = create<ViewerState>((set, get) => ({
   togglePlaying: () => set((s) => ({ isPlaying: !s.isPlaying })),
 
   setViewStats: (stats) => set({ viewStats: stats }),
+
+  setPanelOpen: (open) => set({ panelOpen: open }),
+
+  togglePanel: () => set((s) => ({ panelOpen: !s.panelOpen })),
+
+  setSceneInspection: (inspection) => set({ sceneInspection: inspection }),
+
+  resetStudioState: () =>
+    set({
+      cameraPosition: [...DEFAULT_POSITION] as [number, number, number],
+      controlsTarget: [...DEFAULT_TARGET] as [number, number, number],
+      lastFrame: null,
+      isWireframe: false,
+      autoRotate: false,
+      showGrid: true,
+      showAxes: false,
+      orbitEnabled: true,
+      environment: 'studio',
+      animationClips: [],
+      activeClip: 0,
+      isPlaying: false,
+      viewStats: null,
+      panelOpen: false,
+      sceneInspection: null,
+    }),
+
+  ensureStudioFor: (modelId) => {
+    if (get().studioModelId === modelId) return;
+    set({
+      cameraPosition: [...DEFAULT_POSITION] as [number, number, number],
+      controlsTarget: [...DEFAULT_TARGET] as [number, number, number],
+      lastFrame: null,
+      isWireframe: false,
+      autoRotate: false,
+      showGrid: true,
+      showAxes: false,
+      orbitEnabled: true,
+      environment: 'studio',
+      animationClips: [],
+      activeClip: 0,
+      isPlaying: false,
+      viewStats: null,
+      panelOpen: false,
+      sceneInspection: null,
+      studioModelId: modelId,
+    });
+  },
 }));
